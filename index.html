@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Language Quiz Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #ef4444; /* Red 500 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .container {
+            max-width: 500px;
+        }
+        .level-button {
+            transition: all 0.2s;
+        }
+        .answer-button {
+            transition: all 0.15s;
+            transform: scale(1);
+        }
+        .answer-button:active {
+            transform: scale(0.98);
+        }
+        .correct {
+            background-color: #10b981 !important; /* Emerald 500 */
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        .incorrect {
+            background-color: #f87171 !important; /* Red 400 */
+            color: white !important;
+            border-color: #ef4444 !important;
+        }
+        .listening {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+            }
+        }
+        /* Style for the review cards */
+        .review-correct {
+            border-left: 5px solid #10b981;
+        }
+        .review-incorrect {
+            border-left: 5px solid #ef4444;
+        }
+        .review-skipped {
+            border-left: 5px solid #6b7280; /* Gray 500 */
+        }
+        .tts-button {
+            transition: all 0.2s;
+        }
+        .tts-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="container w-full bg-white shadow-xl rounded-2xl p-6 md:p-8">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">🇪🇸 Spanish Language Trainer</h1>
+
+        <!-- Level Selector & Home Screen -->
+        <div id="level-selection" class="text-center">
+            
+            <!-- Quiz Mode Selection -->
+            <div class="mb-6 p-4 bg-gray-100 rounded-xl shadow-inner">
+                <p class="text-md font-semibold text-gray-700 mb-3">1. Select Quiz Mode (10 Questions):</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    <label class="flex items-center p-2 rounded-lg cursor-pointer transition duration-150 justify-center bg-red-200 shadow-sm"
+                           onclick="setQuizMode('mc')">
+                        <input type="radio" name="quiz_mode" value="mc" checked id="mode-mc" class="form-radio text-red-500 h-4 w-4">
+                        <span class="ml-2 text-gray-800 font-bold text-xs md:text-sm">Spanish to English (MC)</span>
+                    </label>
+                    <label class="flex items-center p-2 rounded-lg cursor-pointer transition duration-150 justify-center bg-white shadow-sm"
+                           onclick="setQuizMode('typing')">
+                        <input type="radio" name="quiz_mode" value="typing" id="mode-typing" class="form-radio text-red-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700 font-medium text-xs md:text-sm">English to Spanish (Typing)</span>
+                    </label>
+                    <label class="flex items-center p-2 rounded-lg cursor-pointer transition duration-150 justify-center bg-white shadow-sm"
+                           onclick="setQuizMode('speaking')">
+                        <input type="radio" name="quiz_mode" value="speaking" id="mode-speaking" class="form-radio text-red-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700 font-medium text-xs md:text-sm">Spanish Speaking (Spanish Q)</span>
+                    </label>
+                    <label class="flex items-center p-2 rounded-lg cursor-pointer transition duration-150 justify-center bg-white shadow-sm"
+                           onclick="setQuizMode('reverse-speaking')">
+                        <input type="radio" name="quiz_mode" value="reverse-speaking" id="mode-reverse-speaking" class="form-radio text-red-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700 font-medium text-xs md:text-sm">English to Spanish (English Q)</span>
+                    </label>
+                    <label class="flex items-center p-2 rounded-lg cursor-pointer transition duration-150 justify-center bg-white shadow-sm"
+                           onclick="setQuizMode('pronunciation')">
+                        <input type="radio" name="quiz_mode" value="pronunciation" id="mode-pronunciation" class="form-radio text-red-500 h-4 w-4">
+                        <span class="ml-2 text-gray-700 font-medium text-xs md:text-sm">Pronunciation & Listening</span>
+                    </label>
+                </div>
+            </div>
+
+            <p class="text-md font-semibold text-gray-700 mb-3">2. Select Level:</p>
+            <div id="level-buttons" class="grid grid-cols-2 gap-4">
+                <!-- Buttons will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <span id="current-level-display" class="px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full">Level: Novice</span>
+                <span id="question-counter" class="text-lg font-medium text-gray-700">Question 1/10</span>
+            </div>
+
+            <!-- Quiz Content Area (Changes based on mode) -->
+            <div id="quiz-content" class="p-8 bg-red-100 border-l-4 border-red-500 rounded-xl mb-8 shadow-md min-h-[100px] flex flex-col justify-center items-center">
+                <!-- Content will be injected here (word/prompt) -->
+            </div>
+
+            <!-- Answer Input/Options Area -->
+            <div id="answer-area" class="grid grid-cols-1 gap-4">
+                <!-- Answer buttons, input field, or microphone button will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden text-center p-6 bg-green-50 rounded-xl shadow-inner">
+            <h2 class="text-3xl font-bold text-green-700 mb-4">Quiz Complete! 🎉</h2>
+            <p class="text-xl text-gray-700 mb-6">You scored <span id="final-score" class="font-extrabold text-red-600">0</span> out of 10.</p>
+            <p id="score-message" class="text-lg font-semibold text-gray-600 mb-8"></p>
+            
+            <div class="flex flex-col space-y-3">
+                <button onclick="copyReviewToClipboard(this)" id="copy-button" class="w-full py-3 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition duration-150">
+                    <i class="fas fa-clipboard"></i> Copy Review to Clipboard
+                </button>
+                <button onclick="resetQuiz()" class="w-full py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition duration-150">
+                    <i class="fas fa-redo"></i> Start New Quiz
+                </button>
+            </div>
+
+            <!-- Quiz Review Section -->
+            <div id="review-list" class="mt-6 pt-4 border-t border-gray-200 text-left">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quiz Review</h3>
+                <!-- Review items will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure (Expanded to 30+ entries per level) ---
+
+        // Data for MC (Spanish -> English) and Typing (English -> Spanish) modes
+        const wordData = {
+            novice: [
+                // 30 entries for Novice (A1-A2)
+                { word: 'Hola', correct: 'Hello', distractors: ['Goodbye', 'Thank you', 'Yes'] },
+                { word: 'Agua', correct: 'Water', distractors: ['Fire', 'Food', 'Air'] },
+                { word: 'Comer', correct: 'To eat', distractors: ['To run', 'To sleep', 'To talk'] },
+                { word: 'Grande', correct: 'Big', distractors: ['Small', 'Fast', 'Hot'] },
+                { word: 'Casa', correct: 'House', distractors: ['Car', 'Book', 'Tree'] },
+                { word: 'Rojo', correct: 'Red', distractors: ['Blue', 'Green', 'Yellow'] },
+                { word: 'Día', correct: 'Day', distractors: ['Night', 'Month', 'Year'] },
+                { word: 'Yo', correct: 'I', distractors: ['You', 'He', 'We'] },
+                { word: 'Perro', correct: 'Dog', distractors: ['Cat', 'Bird', 'Fish'] },
+                { word: 'Cincuenta', correct: 'Fifty', distractors: ['Ten', 'Twenty', 'One Hundred'] },
+                { word: 'Gato', correct: 'Cat', distractors: ['Dog', 'Bird', 'Horse'] },
+                { word: 'Mañana', correct: 'Tomorrow', distractors: ['Yesterday', 'Today', 'Later'] },
+                { word: 'Noche', correct: 'Night', distractors: ['Morning', 'Afternoon', 'Evening'] },
+                { word: 'Libro', correct: 'Book', distractors: ['Pen', 'Paper', 'Desk'] },
+                { word: 'Gracias', correct: 'Thank you', distractors: ['Hello', 'Excuse me', 'Please'] },
+                { word: 'Por favor', correct: 'Please', distractors: ['Stop', 'Hurry', 'Wait'] },
+                { word: 'Adiós', correct: 'Goodbye', distractors: ['Hello', 'See you later', 'Nice to meet you'] },
+                { word: 'Tú', correct: 'You (singular informal)', distractors: ['I', 'He', 'We'] },
+                { word: 'Nosotros', correct: 'We', distractors: ['I', 'You', 'They'] },
+                { word: 'Ellos', correct: 'They (masculine/mixed)', distractors: ['She', 'It', 'We'] },
+                { word: 'Hermano', correct: 'Brother', distractors: ['Sister', 'Cousin', 'Friend'] },
+                { word: 'Padre', correct: 'Father', distractors: ['Mother', 'Son', 'Daughter'] },
+                { word: 'Madre', correct: 'Mother', distractors: ['Father', 'Uncle', 'Aunt'] },
+                { word: 'Coche', correct: 'Car', distractors: ['Train', 'Bike', 'Bus'] },
+                { word: 'Sol', correct: 'Sun', distractors: ['Moon', 'Star', 'Cloud'] },
+                { word: 'Luz', correct: 'Light', distractors: ['Darkness', 'Shadow', 'Noise'] },
+                { word: 'Abrir', correct: 'To open', distractors: ['To close', 'To put', 'To take'] },
+                { word: 'Cerrar', correct: 'To close', distractors: ['To open', 'To walk', 'To talk'] },
+                { word: 'Sí', correct: 'Yes', distractors: ['No', 'Maybe', 'Always'] },
+                { word: 'No', correct: 'No', distractors: ['Yes', 'Perhaps', 'Later'] },
+            ],
+            intermediate: [
+                // 30 entries for Intermediate (B1-B2)
+                { word: 'A menudo', correct: 'Often', distractors: ['Seldom', 'Always', 'Suddenly'] },
+                { word: 'Sin embargo', correct: 'However', distractors: ['Therefore', 'Moreover', 'Besides'] },
+                { word: 'Desarrollar', correct: 'To develop', distractors: ['To destroy', 'To define', 'To design'] },
+                { word: 'El reto', correct: 'The challenge', distractors: ['The reward', 'The result', 'The reason'] },
+                { word: 'A pesar de', correct: 'Despite', distractors: ['Because of', 'In order to', 'Except for'] },
+                { word: 'Conocimiento', correct: 'Knowledge', distractors: ['Friendship', 'Recognition', 'Consciousness'] },
+                { word: 'Lograr', correct: 'To achieve', distractors: ['To lose', 'To fail', 'To hide'] },
+                { word: 'Exigir', correct: 'To demand', distractors: ['To ask', 'To beg', 'To suggest'] },
+                { word: 'Medio ambiente', correct: 'Environment', distractors: ['Government', 'Economy', 'Education'] },
+                { word: 'Confianza', correct: 'Trust/Confidence', distractors: ['Doubt', 'Fear', 'Anger'] },
+                { word: 'Superar', correct: 'To overcome', distractors: ['To supervise', 'To support', 'To surrender'] },
+                { word: 'El compromiso', correct: 'The commitment', distractors: ['The mistake', 'The conflict', 'The distraction'] },
+                { word: 'Destacar', correct: 'To stand out/Highlight', distractors: ['To hide', 'To follow', 'To whisper'] },
+                { word: 'El ciudadano', correct: 'The citizen', distractors: ['The soldier', 'The tourist', 'The alien'] },
+                { word: 'La inversión', correct: 'The investment', distractors: ['The expense', 'The loan', 'The budget'] },
+                { word: 'El esfuerzo', correct: 'The effort', distractors: ['The rest', 'The ease', 'The luck'] },
+                { word: 'Proponer', correct: 'To propose', distractors: ['To oppose', 'To forget', 'To confirm'] },
+                { word: 'Sostenible', correct: 'Sustainable', distractors: ['Temporary', 'Expensive', 'Difficult'] },
+                { word: 'La habilidad', correct: 'The ability/skill', distractors: ['The fault', 'The weakness', 'The feeling'] },
+                { word: 'Apreciar', correct: 'To appreciate', distractors: ['To criticize', 'To ignore', 'To sell'] },
+                { word: 'La herramienta', correct: 'The tool', distractors: ['The door', 'The clock', 'The carpet'] },
+                { word: 'El vínculo', correct: 'The link/bond', distractors: ['The separation', 'The wall', 'The sound'] },
+                { word: 'Disminuir', correct: 'To diminish/decrease', distractors: ['To increase', 'To maintain', 'To multiply'] },
+                { word: 'Enfocarse', correct: 'To focus', distractors: ['To wander', 'To sleep', 'To laugh'] },
+                { word: 'La desigualdad', correct: 'The inequality', distractors: ['The equality', 'The justice', 'The honesty'] },
+                { word: 'El crecimiento', correct: 'The growth', distractors: ['The reduction', 'The halt', 'The balance'] },
+                { word: 'La incertidumbre', correct: 'The uncertainty', distractors: ['The certainty', 'The belief', 'The peace'] },
+                { word: 'El bienestar', correct: 'The well-being', distractors: ['The illness', 'The poverty', 'The noise'] },
+                { word: 'Rechazar', correct: 'To reject', distractors: ['To accept', 'To invite', 'To create'] },
+                { word: 'La propuesta', correct: 'The proposal', distractors: ['The silence', 'The denial', 'The tradition'] },
+            ],
+            advanced: [
+                // 30 entries for Advanced (C1)
+                { word: 'Asegurar', correct: 'To ensure', distractors: ['To calculate', 'To insure', 'To argue'] },
+                { word: 'El matiz', correct: 'The nuance', distractors: ['The rhythm', 'The darkness', 'The texture'] },
+                { word: 'Por ende', correct: 'Therefore', distractors: ['Otherwise', 'Meanwhile', 'Similarly'] },
+                { word: 'El umbral', correct: 'The threshold', distractors: ['The ceiling', 'The window', 'The foundation'] },
+                { word: 'Ojalá', correct: 'I hope so (God willing)', distractors: ['Maybe later', 'It is true', 'Finally'] },
+                { word: 'Superar', correct: 'To overcome', distractors: ['To supervise', 'To support', 'To surpass'] },
+                { word: 'La polémica', correct: 'Controversy', distractors: ['Agreement', 'Consensus', 'Harmony'] },
+                { word: 'El sesgo', correct: 'Bias', distractors: ['Truth', 'Fairness', 'Objective'] },
+                { word: 'La índole', correct: 'Nature/Character (of a thing)', distractors: ['Size', 'Color', 'Taste'] },
+                { word: 'Postular', correct: 'To postulate/apply', distractors: ['To refuse', 'To deny', 'To withdraw'] },
+                { word: 'El desfalco', correct: 'The embezzlement', distractors: ['The payment', 'The donation', 'The savings'] },
+                { word: 'La lacra', correct: 'The scourge/blemish', distractors: ['The blessing', 'The jewel', 'The success'] },
+                { word: 'Acatar', correct: 'To comply/obey', distractors: ['To rebel', 'To hide', 'To negotiate'] },
+                { word: 'La coyuntura', correct: 'The situation/conjuncture', distractors: ['The history', 'The future', 'The solution'] },
+                { word: 'Transigir', correct: 'To compromise/give in', distractors: ['To insist', 'To win', 'To start'] },
+                { word: 'La reticencia', correct: 'The reluctance', distractors: ['The eagerness', 'The belief', 'The laughter'] },
+                { word: 'Fomentar', correct: 'To foster/promote', distractors: ['To discourage', 'To destroy', 'To abandon'] },
+                { word: 'El paradigma', correct: 'The paradigm', distractors: ['The error', 'The fragment', 'The deviation'] },
+                { word: 'Elocuente', correct: 'Eloquent', distractors: ['Silent', 'Awkward', 'Hesitant'] },
+                { word: 'Subyacente', correct: 'Underlying', distractors: ['Visible', 'Obvious', 'Trivial'] },
+                { word: 'La hegemonía', correct: 'The hegemony', distractors: ['The equality', 'The chaos', 'The weakness'] },
+                { word: 'Irrefutable', correct: 'Irrefutable', distractors: ['Questionable', 'False', 'Hypothetical'] },
+                { word: 'El preámbulo', correct: 'The preamble', distractors: ['The conclusion', 'The chapter', 'The result'] },
+                { word: 'Apremiante', correct: 'Urgent/Pressing', distractors: ['Minor', 'Slow', 'Relaxing'] },
+                { word: 'La diatriba', correct: 'The diatribe/rant', distractors: ['The compliment', 'The song', 'The silence'] },
+                { word: 'Susceptible', correct: 'Susceptible/Liable', distractors: ['Resistant', 'Strong', 'Hardy'] },
+                { word: 'Ponderar', correct: 'To weigh/consider', distractors: ['To decide', 'To forget', 'To ignore'] },
+                { word: 'La tesitura', correct: 'The situation/position', distractors: ['The time', 'The color', 'The texture'] },
+                { word: 'Prevalecer', correct: 'To prevail', distractors: ['To fail', 'To surrender', 'To stop'] },
+                { word: 'La discrepancia', correct: 'The discrepancy', distractors: ['The agreement', 'The harmony', 'The similarity'] },
+            ],
+            fluent: [
+                // 30 entries for Fluent (C2 - Idioms/Phrases)
+                { word: 'Estar de cháchara', correct: 'To be chatting (casually)', distractors: ['To be angry', 'To be silent', 'To be working'] },
+                { word: 'A troche y moche', correct: 'Willy-nilly/Haphazardly', distractors: ['Carefully', 'Immediately', 'In silence'] },
+                { word: 'Estar al loro', correct: 'To be alert/aware', distractors: ['To be hungry', 'To be bored', 'To be confused'] },
+                { word: 'Ser pan comido', correct: 'To be a piece of cake (easy)', distractors: ['To be impossible', 'To be fun', 'To be boring'] },
+                { word: 'Irse por las ramas', correct: 'To beat around the bush', distractors: ['To go outside', 'To be direct', 'To climb a tree'] },
+                { word: 'El meollo', correct: 'The core/crux', distractors: ['The shell', 'The obstacle', 'The distraction'] },
+                { word: 'Armarse un follón', correct: 'To cause a commotion', distractors: ['To apologize', 'To clean up', 'To relax'] },
+                { word: 'A duras penas', correct: 'With great difficulty', distractors: ['Easily', 'Quickly', 'Lazily'] },
+                { word: 'Hacer caso', correct: 'To pay attention/take notice', distractors: ['To ignore', 'To forget', 'To hurry'] },
+                { word: 'Estar en ascuas', correct: 'To be on pins and needles', distractors: ['To be relaxing', 'To be asleep', 'To be certain'] },
+                { word: 'Echar un cable', correct: 'To lend a hand/help out', distractors: ['To cut a rope', 'To plug in', 'To start a car'] },
+                { word: 'Ponerse las pilas', correct: 'To get moving/buckle down', distractors: ['To be lazy', 'To sleep late', 'To put on shoes'] },
+                { word: 'Estar como una cabra', correct: 'To be crazy/nutty', distractors: ['To be cold', 'To be hungry', 'To be nervous'] },
+                { word: 'Tirar la toalla', correct: 'To throw in the towel/give up', distractors: ['To clean up', 'To start over', 'To get ready'] },
+                { word: 'Buscarle tres pies al gato', correct: 'To complicate things unnecessarily', distractors: ['To find a pet', 'To solve a problem', 'To search for a cat'] },
+                { word: 'De golpe y porrazo', correct: 'All of a sudden', distractors: ['Very slowly', 'With planning', 'One by one'] },
+                { word: 'Estar hecho un lío', correct: 'To be confused/a mess', distractors: ['To be tidy', 'To be happy', 'To be focused'] },
+                { word: 'No tener pelos en la lengua', correct: 'To be straightforward/say what you think', distractors: ['To be polite', 'To be shy', 'To be quiet'] },
+                { word: 'Dar en el clavo', correct: 'To hit the nail on the head/be right', distractors: ['To make a mistake', 'To be wrong', 'To miss the target'] },
+                { word: 'Ser uña y carne', correct: 'To be inseparable/very close', distractors: ['To be enemies', 'To be distant', 'To be confused'] },
+                { word: 'A capa y espada', correct: 'Tooth and nail/fiercely', distractors: ['With care', 'With silence', 'With doubt'] },
+                { word: 'Estar como pez en el agua', correct: 'To be completely comfortable/in one\'s element', distractors: ['To be lost', 'To be sick', 'To be bored'] },
+                { word: 'No es moco de pavo', correct: 'It\'s no small matter', distractors: ['It is easy', 'It is funny', 'It is trivial'] },
+                { word: 'Meter la pata', correct: 'To put one\'s foot in one\'s mouth/mess up', distractors: ['To fix a problem', 'To speak clearly', 'To stand up'] },
+                { word: 'Echar leña al fuego', correct: 'To add fuel to the fire', distractors: ['To calm things down', 'To put out a fire', 'To turn off the light'] },
+                { word: 'Ser la oveja negra', correct: 'To be the black sheep', distractors: ['To be the favorite', 'To be the leader', 'To be silent'] },
+                { word: 'Tener mala leche', correct: 'To be bad-tempered', distractors: ['To be hungry', 'To be happy', 'To be tired'] },
+                { word: 'Estar en Babia', correct: 'To be daydreaming/out of it', distractors: ['To be focused', 'To be listening', 'To be running'] },
+                { word: 'Hacer borrón y cuenta nueva', correct: 'To wipe the slate clean/start over', distractors: ['To remember everything', 'To keep a secret', 'To finish a project'] },
+                { word: 'Más vale tarde que nunca', correct: 'Better late than never', distractors: ['Hurry up', 'Never mind', 'That\'s fine'] },
+            ]
+        };
+        
+        // Data for Speaking modes (Expanded)
+        const speakingData = {
+            forward: { // Spanish Q, User Answers in Spanish
+                novice: [
+                    { question: '¿Cómo te llamas?', spanish: 'Me llamo...', english: 'My name is...', keywords: 'Me llamo' },
+                    { question: '¿Cuántos años tienes?', spanish: 'Tengo... años.', english: 'I am... years old.', keywords: 'Tengo años' },
+                    { question: '¿De dónde eres?', spanish: 'Soy de...', english: 'I am from...', keywords: 'Soy de' },
+                    { question: '¿Cómo estás hoy?', spanish: 'Estoy bien/mal/cansado(a).', english: 'I am well/bad/tired.', keywords: 'Estoy' },
+                    { question: '¿Qué hora es?', spanish: 'Son las... / Es la una.', english: 'It is...', keywords: 'Son las Es la' },
+                    { question: '¿Qué tiempo hace?', spanish: 'Hace sol/frío/calor.', english: 'It is sunny/cold/hot.', keywords: 'Hace sol frío calor' },
+                    { question: '¿Te gusta leer?', spanish: 'Sí, me gusta leer / No, no me gusta.', english: 'Yes, I like to read / No, I don\'t like it.', keywords: 'gusta leer' },
+                    { question: '¿Tienes un perro o un gato?', spanish: 'Tengo un perro/gato / No tengo.', english: 'I have a dog/cat / I don\'t have one.', keywords: 'Tengo perro gato' },
+                    { question: '¿Qué comes para el desayuno?', spanish: 'Como pan y café.', english: 'I eat bread and coffee.', keywords: 'Como pan café' },
+                    { question: '¿Dónde vives?', spanish: 'Vivo en una casa/apartamento.', english: 'I live in a house/apartment.', keywords: 'Vivo casa apartamento' },
+                ],
+                intermediate: [
+                    { question: '¿Qué opinas sobre el medio ambiente?', spanish: 'Creo que es crucial proteger el medio ambiente.', english: 'I believe it is crucial to protect the environment.', keywords: 'crucial proteger medio ambiente' },
+                    { question: '¿Cuál es el mayor reto hoy?', spanish: 'El mayor reto es la desigualdad económica.', english: 'The biggest challenge is economic inequality.', keywords: 'mayor reto desigualdad económica' },
+                    { question: '¿Qué planes tienes para el futuro?', spanish: 'Planeo desarrollar nuevas habilidades y viajar.', english: 'I plan to develop new skills and travel.', keywords: 'desarrollar habilidades viajar' },
+                    { question: '¿Por qué es importante el conocimiento?', spanish: 'El conocimiento nos da confianza y nos ayuda a superar.', english: 'Knowledge gives us confidence and helps us overcome.', keywords: 'conocimiento confianza superar' },
+                    { question: '¿Qué harías para fomentar la educación?', spanish: 'Propondría una inversión sostenible en recursos educativos.', english: 'I would propose a sustainable investment in educational resources.', keywords: 'inversión sostenible recursos educativos' },
+                    { question: '¿Qué valoras en la amistad?', spanish: 'Valoro la confianza, el apoyo y el compromiso.', english: 'I value trust, support, and commitment.', keywords: 'Valoro confianza apoyo compromiso' },
+                    { question: '¿Cómo se puede lograr la paz?', spanish: 'Debemos enfocarnos en la comunicación y disminuir la violencia.', english: 'We must focus on communication and diminish violence.', keywords: 'enfocarnos comunicación disminuir violencia' },
+                    { question: '¿Con qué frecuencia lees libros?', spanish: 'Leo a menudo, por lo menos una vez a la semana.', english: 'I read often, at least once a week.', keywords: 'Leo a menudo una vez semana' },
+                    { question: '¿Qué te exige tu trabajo?', spanish: 'Mi trabajo me exige esfuerzo, habilidad y concentración.', english: 'My job demands effort, skill, and concentration from me.', keywords: 'exige esfuerzo habilidad concentración' },
+                    { question: '¿Cómo reaccionarías ante la incertidumbre?', spanish: 'Mantendría la calma a pesar de la incertidumbre.', english: 'I would remain calm despite the uncertainty.', keywords: 'Mantendría calma a pesar incertidumbre' },
+                ],
+                advanced: [/* ... similar complexity ... */],
+                fluent: [/* ... similar complexity ... */],
+            },
+            reverse: { // English Q, User Answers in Spanish
+                novice: [
+                    { question: 'Ask me for a glass of water.', spanish: 'Quiero un vaso de agua, por favor.', english: 'I want a glass of water, please.', keywords: 'vaso agua favor' },
+                    { question: 'Say: "I live in a big house."', spanish: 'Vivo en una casa grande.', english: 'I live in a big house.', keywords: 'Vivo casa grande' },
+                    { question: 'Say: "The red book is on the table."', spanish: 'El libro rojo está en la mesa.', english: 'The red book is on the table.', keywords: 'libro rojo mesa' },
+                    { question: 'Ask: "Where is the nearest bathroom?"', spanish: '¿Dónde está el baño más cercano?', english: 'Where is the nearest bathroom?', keywords: 'Dónde baño cercano' },
+                    { question: 'Say: "I need help with this."', spanish: 'Necesito ayuda con esto.', english: 'I need help with this.', keywords: 'Necesito ayuda esto' },
+                    { question: 'Say: "I want to eat now."', spanish: 'Quiero comer ahora.', english: 'I want to eat now.', keywords: 'Quiero comer ahora' },
+                    { question: 'Say: "Thank you and goodbye."', spanish: 'Gracias y adiós.', english: 'Thank you and goodbye.', keywords: 'Gracias adiós' },
+                    { question: 'Say: "I am a student."', spanish: 'Soy estudiante.', english: 'I am a student.', keywords: 'Soy estudiante' },
+                    { question: 'Say: "I have fifty dollars."', spanish: 'Tengo cincuenta dólares.', english: 'I have fifty dollars.', keywords: 'Tengo cincuenta dólares' },
+                    { question: 'Say: "Today is a beautiful day."', spanish: 'Hoy es un día hermoso.', english: 'Today is a beautiful day.', keywords: 'Hoy día hermoso' },
+                ],
+                intermediate: [
+                    { question: 'Say: "We need to overcome the challenge."', spanish: 'Necesitamos superar el reto.', english: 'We need to overcome the challenge.', keywords: 'Necesitamos superar reto' },
+                    { question: 'Say: "Despite the conflict, they achieved success."', spanish: 'A pesar del conflicto, lograron el éxito.', english: 'Despite the conflict, they achieved success.', keywords: 'pesar conflicto lograron éxito' },
+                    { question: 'Say: "The commitment to development is important."', spanish: 'El compromiso con el desarrollo es importante.', english: 'The commitment to development is important.', keywords: 'compromiso desarrollo importante' },
+                    { question: 'Say: "We must appreciate the effort."', spanish: 'Debemos apreciar el esfuerzo.', english: 'We must appreciate the effort.', keywords: 'Debemos apreciar esfuerzo' },
+                    { question: 'Say: "He proposes a sustainable solution."', spanish: 'Él propone una solución sostenible.', english: 'He proposes a sustainable solution.', keywords: 'propone solución sostenible' },
+                    { question: 'Say: "The tool is essential for the growth."', spanish: 'La herramienta es esencial para el crecimiento.', english: 'The tool is essential for the growth.', keywords: 'herramienta esencial crecimiento' },
+                    { question: 'Say: "They demand absolute confidence."', spanish: 'Ellos exigen confianza absoluta.', english: 'They demand absolute confidence.', keywords: 'exigen confianza absoluta' },
+                    { question: 'Say: "She tends to stand out often."', spanish: 'Ella suele destacar a menudo.', english: 'She tends to stand out often.', keywords: 'suele destacar menudo' },
+                    { question: 'Say: "The well-being of the citizen is vital."', spanish: 'El bienestar del ciudadano es vital.', english: 'The well-being of the citizen is vital.', keywords: 'bienestar ciudadano vital' },
+                    { question: 'Say: "However, we should decrease the inequality."', spanish: 'Sin embargo, deberíamos disminuir la desigualdad.', english: 'However, we should decrease the inequality.', keywords: 'Sin embargo disminuir desigualdad' },
+                ],
+                advanced: [/* ... similar complexity ... */],
+                fluent: [/* ... similar complexity ... */],
+            }
+        };
+        
+        // Data for NEW Pronunciation Mode (Expanded to 30 sentences per level)
+        const pronunciationData = {
+            novice: [
+                'Yo quiero un vaso de agua, por favor.',
+                '¿Dónde está el baño más cercano?',
+                'Hoy hace sol y la temperatura es buena.',
+                'Mi familia y yo vivimos en una casa pequeña.',
+                'Tengo dos hermanos y una hermana mayor.',
+                'La capital de España es la ciudad de Madrid.',
+                'Me gusta mucho leer libros de historia.',
+                '¿A qué hora empieza la película?',
+                'El perro duerme debajo de la mesa.',
+                'Voy al supermercado a comprar comida fresca.',
+                'Necesito ayuda con este ejercicio difícil.',
+                '¿Qué vas a hacer este fin de semana?',
+                'Ella habla inglés y también un poco de francés.',
+                'Son las tres y media de la tarde.',
+                'Prefiero el té caliente sin azúcar.',
+                'Mi color favorito es el azul oscuro.',
+                'Trabajo en una oficina cerca del centro.',
+                'El coche nuevo es muy rápido.',
+                '¿Cuánto cuesta un billete a Sevilla?',
+                'Estoy cansado después de un largo día de trabajo.',
+                'Quiero aprender a cocinar platos españoles.',
+                'El niño juega con una pelota roja.',
+                'Puedes encontrar la llave en la cocina.',
+                'No entiendo esta palabra, ¿qué significa?',
+                'Hablamos por teléfono todos los días.',
+                'Siempre me levanto a las siete de la mañana.',
+                'Me duele la cabeza, necesito un café.',
+                'Cierra la puerta cuando salgas de la habitación.',
+                '¿Quién es esa persona con el abrigo gris?',
+                'Voy a visitar a mis abuelos mañana.'
+            ],
+            intermediate: [
+                'A pesar de la lluvia, decidimos salir a pasear.',
+                'La inversión en tecnología ha aumentado mucho.',
+                'Es fundamental desarrollar habilidades comunicativas.',
+                'El medio ambiente necesita nuestra protección urgente.',
+                'Sin embargo, la situación sigue siendo incierta.',
+                'El esfuerzo constante nos ayuda a superar retos.',
+                'Me gustaría viajar a países exóticos el próximo año.',
+                'La desigualdad económica es un problema global.',
+                'Es importante fomentar la confianza en el equipo.',
+                'Describe cómo el conocimiento cambia tu perspectiva.',
+                'Analicemos la propuesta antes de tomar una decisión.',
+                'Ella logró su objetivo gracias a su perseverancia.',
+                'El crecimiento sostenible beneficia a todos.',
+                '¿Qué cualidad valoras más en un líder político?',
+                'La habilidad para adaptarse es crucial hoy en día.',
+                '¿Cuál es el mayor desafío que enfrenta la humanidad?',
+                'El vínculo entre cultura y lengua es muy fuerte.',
+                'Debemos disminuir el consumo de plástico.',
+                'Me enfocaré en terminar este proyecto hoy mismo.',
+                'El bienestar emocional es tan vital como el físico.',
+                'El compromiso social exige acción, no solo palabras.',
+                'La herramienta más útil es la educación.',
+                '¿Qué opinas sobre el impacto de la inteligencia artificial?',
+                'La propuesta fue rechazada por falta de fondos.',
+                'Necesitamos destacar la importancia de la historia.',
+                '¿Qué harías si pudieras cambiar el pasado?',
+                'La incertidumbre económica nos afecta a todos.',
+                'Es apremiante encontrar una solución rápida.',
+                'El futuro de las ciudades será más ecológico.',
+                'El jefe nos exigió máxima calidad en el trabajo.'
+            ],
+            advanced: [
+                'Postuló una teoría que rompe con el paradigma vigente.',
+                'El sesgo mediático influye profundamente en la opinión pública.',
+                'Debemos acatar las normas por el bien de la comunidad.',
+                'La coyuntura política actual es extremadamente volátil.',
+                'Hay una reticencia generalizada a transigir en este asunto.',
+                'La dicotomía entre la tradición y la modernidad persiste.',
+                'Esa conclusión parece irrefutable dadas las pruebas.',
+                'El preámbulo de la ley establece los principios fundamentales.',
+                'La discrepancia de criterios complicó el acuerdo final.',
+                'No es moco de pavo resolver el meollo de este dilema.',
+                'El fenómeno subyacente requiere un análisis más profundo.',
+                'Por ende, es imperativo asegurar la sostenibilidad del sistema.',
+                'Ojalá el nuevo gobierno fomente la inversión a largo plazo.',
+                'El matiz lingüístico en esta frase es sutil pero relevante.',
+                'La hegemonía cultural se manifiesta de diversas maneras.',
+                'Su elocuente discurso conmovió a toda la audiencia.',
+                'El desfalco millonario ha sido la lacra de la empresa.',
+                'Conviene ponderar cuidadosamente los pros y los contras.',
+                'La tesitura actual demanda medidas extraordinarias.',
+                'La diatriba del opositor fue sumamente incendiaria.',
+                'El tejido social se muestra susceptible a estos cambios.',
+                'La ambigüedad semántica crea confusión innecesaria.',
+                'Las variables endógenas distorsionan el modelo predictivo.',
+                'Un juicio salomónico sería lo más apropiado ahora.',
+                'Debe prevalecer la razón por encima de la emoción.',
+                'La idiosincrasia de la región es muy particular.',
+                'Es crucial desentrañar la complejidad del asunto.',
+                'La prosopopeya es una figura retórica muy potente.'
+            ],
+            fluent: [
+                'Después del conflicto, hicieron borrón y cuenta nueva.',
+                'Ella es la oveja negra de la familia, siempre rebelde.',
+                'No te vayas por las ramas, ve al grano del problema.',
+                'El examen fue pan comido, lo terminé en diez minutos.',
+                'Hay que ponerse las pilas para acabar el proyecto a tiempo.',
+                'Estaba tan nervioso que se sentía como pez fuera del agua.',
+                'Defendió su postura a capa y espada en la reunión.',
+                'Mi primo tiene muy mala leche cuando no ha comido.',
+                'Cuando estás en Babia no haces caso a lo que te dicen.',
+                'Con el tiempo, logramos dar en el clavo con la solución.',
+                'Los dos hermanos son uña y carne desde que eran niños.',
+                'Tuvieron que echarle un cable para pagar la hipoteca.',
+                'Se armó un follón tremendo en la calle por el accidente.',
+                'A duras penas pudo terminar la maratón de la ciudad.',
+                'De golpe y porrazo, el sistema colapsó por la sobrecarga.',
+                'Para entender el meollo del asunto, hay que leer el informe.',
+                'No es moco de pavo haber levantado esa empresa tú solo.',
+                'Está hecho un lío con las instrucciones del nuevo aparato.',
+                'El político no tiene pelos en la lengua al hablar de corrupción.',
+                'Echar leña al fuego solo empeorará la situación actual.',
+                'Más vale tarde que nunca llegar a un acuerdo en esto.',
+                'Para estar al loro de las noticias, leo varios periódicos.',
+                'La abuela pasa las tardes de cháchara con sus vecinas.',
+                'Empezó a gastar dinero a troche y moche sin control.',
+                'Estamos en ascuas esperando el resultado del análisis.',
+                'Intentar justificarlo es buscarle tres pies al gato.',
+                'Conviene ir con pies de plomo en este tipo de negocios.',
+                'Le tocó bailar con la más fea en la negociación.',
+                'Se puso como un tomate cuando le dijeron un piropo.',
+                'No hay que andarse con chiquitas, la verdad es simple.'
+            ]
+        };
+
+        // --- State Management ---
+        let currentLevel = null;
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswerLocked = false;
+        let quizHistory = []; 
+        let quizMode = 'mc'; // 'mc', 'typing', 'speaking', 'reverse-speaking', 'pronunciation'
+
+        // Web Speech API Initialization
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES'; // Set language to Spanish
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+        }
+
+
+        // --- DOM Elements & Utilities ---
+        const levelSelectionEl = document.getElementById('level-selection');
+        const levelButtonsEl = document.getElementById('level-buttons');
+        const quizScreenEl = document.getElementById('quiz-screen');
+        const resultsScreenEl = document.getElementById('results-screen');
+        const quizContentEl = document.getElementById('quiz-content'); 
+        const answerAreaEl = document.getElementById('answer-area'); 
+        const questionCounterEl = document.getElementById('question-counter');
+        const currentLevelDisplayEl = document.getElementById('current-level-display');
+        const finalScoreEl = document.getElementById('final-score');
+        const scoreMessageEl = document.getElementById('score-message');
+        const reviewListEl = document.getElementById('review-list');
+        const copyButtonEl = document.getElementById('copy-button');
+        
+        let audioContext = null;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function normalizeString(str) {
+            return str.replace(/[.,/#!$%^&*;:{}=?"¿¡'()]/g,"").trim().toLowerCase();
+        }
+
+        // Calculates how similar the user's transcript is to the target sentence (simple word matching)
+        function calculateSimilarity(target, transcript) {
+            const normalizedTarget = normalizeString(target);
+            const normalizedTranscript = normalizeString(transcript);
+
+            if (!normalizedTranscript.length) return 0;
+            
+            const targetWords = normalizedTarget.split(/\s+/).filter(w => w.length > 0);
+            const transcriptWords = normalizedTranscript.split(/\s+/).filter(w => w.length > 0);
+
+            if (targetWords.length === 0) return 0;
+
+            let matches = 0;
+            const matchedIndices = new Set(); 
+
+            // Simple search for matching words (ignoring word order and repetition)
+            for (const tWord of transcriptWords) {
+                // Find if the spoken word matches any remaining target word
+                const targetIndex = targetWords.findIndex((tw, i) => 
+                    !matchedIndices.has(i) && tw === tWord
+                );
+                
+                if (targetIndex !== -1) {
+                    matches++;
+                    matchedIndices.add(targetIndex);
+                }
+            }
+
+            // Grade based on percentage of target words correctly matched (allows for extra words)
+            return (matches / targetWords.length) * 100;
+        }
+
+        function setQuizMode(mode) {
+            quizMode = mode;
+            const radioEl = document.getElementById(`mode-${mode}`);
+            if (radioEl) {
+                radioEl.checked = true;
+                // Update styling of mode buttons
+                document.querySelectorAll('input[name="quiz_mode"]').forEach(input => {
+                    const label = input.closest('label');
+                    if (input.value === mode) {
+                         label.classList.add('bg-red-200');
+                         label.classList.remove('bg-white', 'text-gray-700', 'font-medium');
+                         label.querySelector('span').classList.add('font-bold', 'text-gray-800');
+                    } else {
+                         label.classList.remove('bg-red-200');
+                         label.classList.add('bg-white');
+                         label.querySelector('span').classList.remove('font-bold', 'text-gray-800');
+                         label.querySelector('span').classList.add('font-medium', 'text-gray-700');
+                    }
+                });
+            }
+        }
+
+        // --- TTS and Audio Playback Helpers ---
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+            
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            
+            // FMT chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // chunkSize
+            view.setUint16(20, 1, true); // wFormatTag (1 for PCM)
+            view.setUint16(22, 1, true); // wChannels (1 for mono)
+            view.setUint32(24, sampleRate, true); // dwSamplesPerSec
+            view.setUint32(28, sampleRate * 2, true); // dwAvgBytesPerSec
+            view.setUint16(32, 2, true); // wBlockAlign (2 bytes/sample)
+            view.setUint16(34, 16, true); // wBitsPerSample
+            
+            // Data chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.length * 2, true);
+            
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        
+        function writeString(view, offset, str) {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset + i, str.charCodeAt(i));
+            }
+        }
+
+        async function playTTS(sentence) {
+            const playButton = document.getElementById('play-tts-button');
+            const micButton = document.getElementById('mic-button'); 
+            const statusEl = document.getElementById('pronunciation-status');
+            
+            if (!playButton || !statusEl || !micButton) return;
+
+            playButton.disabled = true;
+            micButton.disabled = true; 
+            statusEl.textContent = 'Generating Audio...';
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: sentence }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" } 
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+                
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    statusEl.textContent = 'Playing...';
+                    audio.onended = () => {
+                        statusEl.textContent = 'Ready to repeat. Click the microphone.';
+                        playButton.disabled = false;
+                        micButton.disabled = false; 
+                    };
+                    audio.play();
+                } else {
+                    console.error("TTS API response error:", result);
+                    statusEl.textContent = 'Error: Failed to generate audio.';
+                    playButton.disabled = false;
+                    micButton.disabled = false; 
+                }
+            } catch (error) {
+                console.error('Error fetching TTS:', error);
+                statusEl.textContent = 'Error: Check connection or API status.';
+                playButton.disabled = false;
+                micButton.disabled = false; 
+            }
+        }
+
+
+        // --- Skip Functionality (New) ---
+
+        function skipQuestion() {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+
+            const currentQuestion = currentQuestions[currentQuestionIndex];
+            let reviewEntry = {
+                mode: quizMode,
+                isCorrect: false,
+                isSkipped: true,
+                userSelection: 'Skipped',
+                questionTitle: (quizMode === 'pronunciation') ? currentQuestion : currentQuestion.word || currentQuestion.question || currentQuestion.correct,
+            };
+            
+            if (quizMode === 'pronunciation') {
+                reviewEntry.targetSentence = currentQuestion;
+            }
+
+            quizHistory.push(reviewEntry);
+
+            // Clear any lingering feedback
+            const feedbackEl = document.getElementById('feedback');
+            if (feedbackEl) feedbackEl.remove();
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 300); 
+        }
+
+        // --- Core Quiz Logic ---
+
+        function initializeLevelButtons() {
+            setQuizMode('mc'); 
+
+            const levels = [
+                { key: 'novice', name: 'Novice (A1-A2)', color: 'bg-red-500' },
+                { key: 'intermediate', name: 'Intermediate (B1-B2)', color: 'bg-amber-500' },
+                { key: 'advanced', name: 'Advanced (C1)', color: 'bg-green-500' },
+                { key: 'fluent', name: 'Fluent (C2)', color: 'bg-blue-500' },
+            ];
+
+            levelButtonsEl.innerHTML = levels.map(level => `
+                <button 
+                    onclick="startQuiz('${level.key}')"
+                    class="level-button py-4 text-white font-bold rounded-xl shadow-lg transition duration-200 hover:scale-[1.03] ${level.color} focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${level.color.split('-')[1]}-500"
+                >
+                    ${level.name}
+                </button>
+            `).join('');
+        }
+
+        function startQuiz(levelKey) {
+            currentLevel = levelKey;
+            
+            let wordBank;
+            if (quizMode === 'mc' || quizMode === 'typing') {
+                wordBank = wordData[levelKey] || [];
+            } else if (quizMode === 'speaking') {
+                wordBank = speakingData.forward[levelKey] || [];
+            } else if (quizMode === 'reverse-speaking') {
+                 wordBank = speakingData.reverse[levelKey] || [];
+            } else if (quizMode === 'pronunciation') {
+                 wordBank = pronunciationData[levelKey] || [];
+            } else {
+                 wordBank = [];
+            }
+            
+            const fullWordBank = [...wordBank];
+            shuffleArray(fullWordBank);
+            currentQuestions = fullWordBank.slice(0, 10); // Take only 10 questions
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            quizHistory = []; 
+
+            if (copyButtonEl) {
+                copyButtonEl.innerHTML = '<i class="fas fa-clipboard"></i> Copy Review to Clipboard';
+                copyButtonEl.classList.remove('bg-green-500', 'hover:bg-green-600');
+                copyButtonEl.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            }
+
+            levelSelectionEl.classList.add('hidden');
+            resultsScreenEl.classList.add('hidden');
+            quizScreenEl.classList.remove('hidden');
+
+            const levelName = levelKey.charAt(0).toUpperCase() + levelKey.slice(1);
+            currentLevelDisplayEl.textContent = `Level: ${levelName}`;
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswerLocked = false;
+            // Clear previous answers/feedback
+            answerAreaEl.innerHTML = '';
+            
+            if (currentQuestionIndex >= currentQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = currentQuestions[currentQuestionIndex];
+            
+            questionCounterEl.textContent = `Question ${currentQuestionIndex + 1}/10`;
+
+            if (quizMode === 'mc') {
+                quizContentEl.innerHTML = `
+                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">Spanish Word</p>
+                    <p id="spanish-word" class="text-4xl font-extrabold text-gray-900 text-center">${q.word}</p>
+                    <p class="text-center text-gray-600 mt-2">Pick the correct English meaning:</p>
+                `;
+                renderMultipleChoiceButtons(q);
+            } else if (quizMode === 'typing') {
+                quizContentEl.innerHTML = `
+                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">English Prompt</p>
+                    <p id="english-word" class="text-4xl font-extrabold text-gray-900 text-center">${q.correct}</p>
+                    <p class="text-center text-gray-600 mt-2">Type the correct Spanish translation:</p>
+                `;
+                renderTypingInput(q);
+            } else if (quizMode === 'speaking' || quizMode === 'reverse-speaking') {
+                const isForward = quizMode === 'speaking';
+                 quizContentEl.innerHTML = `
+                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">${isForward ? 'Spanish Question' : 'English Question'}</p>
+                    <p id="speaking-question" class="text-4xl font-extrabold text-gray-900 text-center">${q.question}</p>
+                    <p class="text-center text-gray-600 mt-2">Speak your Spanish answer after clicking the mic:</p>
+                `;
+                renderSpeakingInput(q);
+            } else if (quizMode === 'pronunciation') {
+                const sentence = q;
+                quizContentEl.innerHTML = `
+                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">Repeat This Sentence</p>
+                    <p id="target-sentence" class="text-4xl font-extrabold text-gray-900 text-center">${sentence}</p>
+                    <p id="pronunciation-status" class="text-center text-red-600 font-semibold mt-2">Click Play to hear the audio.</p>
+                `;
+                renderPronunciationInput(sentence);
+            }
+        }
+
+        // --- Mode 1: Multiple Choice Logic ---
+
+        function renderMultipleChoiceButtons(q) {
+            const allAnswers = shuffleArray([q.correct, ...q.distractors]);
+            
+            answerAreaEl.innerHTML = allAnswers.map(answer => `
+                <button 
+                    onclick="handleMultipleChoiceAnswer('${q.word.replace(/'/g, "\\'")}', '${answer.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}', this)"
+                    class="answer-button w-full py-4 text-gray-800 font-semibold bg-gray-100 rounded-xl shadow-md border border-gray-300 hover:bg-gray-200"
+                    data-answer="${answer}"
+                >
+                    ${answer}
+                </button>
+            `).join('');
+
+            // Add Skip button
+             answerAreaEl.innerHTML += `
+                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
+                    Skip Question
+                </button>
+            `;
+        }
+
+        function handleMultipleChoiceAnswer(spanishWord, selectedAnswer, correctAnswer, clickedButton) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+
+            const isCorrect = selectedAnswer === correctAnswer;
+
+            // Apply feedback styling
+            document.querySelectorAll('.answer-button').forEach(btn => {
+                btn.disabled = true; // Disable all buttons
+                if (btn.getAttribute('data-answer') === correctAnswer) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('bg-gray-100');
+                } else if (btn === clickedButton) {
+                    btn.classList.add('incorrect');
+                    btn.classList.remove('bg-gray-100', 'text-gray-800');
+                } else {
+                    btn.classList.remove('bg-gray-100', 'hover:bg-gray-200');
+                    btn.classList.add('bg-gray-50', 'text-gray-400'); // Dim incorrect distractors
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+            }
+
+            // Record history
+            quizHistory.push({
+                mode: 'mc',
+                spanishWord: spanishWord,
+                correctAnswer: correctAnswer,
+                userSelection: selectedAnswer,
+                isCorrect: isCorrect,
+                isSkipped: false
+            });
+
+            // Move to next question after delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1500); 
+        }
+
+        // --- Mode 2: Typing Logic ---
+
+        function renderTypingInput(q) {
+            answerAreaEl.innerHTML = `
+                <input type="text" id="typing-input" placeholder="Type Spanish answer here..." 
+                       class="w-full p-4 border-2 border-red-300 rounded-xl text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                       onkeydown="if(event.key === 'Enter') handleTypingAnswer('${q.word.replace(/'/g, "\\'")}')">
+                
+                <div class="flex flex-wrap justify-center gap-2 mt-2 mb-4">
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('á')">á</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('é')">é</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('í')">í</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ó')">ó</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ú')">ú</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ñ')">ñ</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ü')">ü</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('¿')">¿</button>
+                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('¡')">¡</button>
+                </div>
+                
+                <button id="submit-typing" onclick="handleTypingAnswer('${q.word.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}')" 
+                        class="w-full py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition duration-150">
+                    Submit Answer
+                </button>
+                <div id="typing-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
+                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
+                    Skip Question
+                </button>
+            `;
+        }
+
+        function insertSpecialChar(char) {
+            const input = document.getElementById('typing-input');
+            if (input) {
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                input.value = input.value.substring(0, start) + char + input.value.substring(end);
+                input.focus();
+                input.selectionStart = input.selectionEnd = start + char.length;
+            }
+        }
+
+        function handleTypingAnswer(correctAnswerSpanish, englishPrompt) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+
+            const input = document.getElementById('typing-input');
+            const feedbackEl = document.getElementById('typing-feedback');
+            const submitBtn = document.getElementById('submit-typing');
+            const userAnswer = input ? input.value : '';
+
+            // Simple normalization for comparison (removes punctuation, ignores case)
+            const normalizedUser = normalizeString(userAnswer);
+            const normalizedCorrect = normalizeString(correctAnswerSpanish);
+
+            const isCorrect = normalizedUser === normalizedCorrect;
+            
+            submitBtn.disabled = true;
+            input.disabled = true;
+            feedbackEl.classList.remove('hidden');
+
+            if (isCorrect) {
+                score++;
+                feedbackEl.classList.add('text-green-600');
+                feedbackEl.classList.remove('text-red-600');
+                feedbackEl.innerHTML = `¡Correcto! <i class="fas fa-check-circle"></i>`;
+                input.classList.add('border-green-500');
+            } else {
+                feedbackEl.classList.add('text-red-600');
+                feedbackEl.classList.remove('text-green-600');
+                feedbackEl.innerHTML = `❌ Incorrecto. Correct answer was: <span class="font-extrabold">${correctAnswerSpanish}</span>`;
+                input.classList.add('border-red-500');
+            }
+
+            // Record history
+            quizHistory.push({
+                mode: 'typing',
+                spanishWord: correctAnswerSpanish,
+                englishPrompt: englishPrompt,
+                userSelection: userAnswer,
+                isCorrect: isCorrect,
+                isSkipped: false
+            });
+
+            // Move to next question after delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 3000); 
+        }
+
+        // --- Mode 3 & 4: Speaking Logic ---
+
+        function renderSpeakingInput(q) {
+            answerAreaEl.innerHTML = `
+                <div class="flex justify-center mb-6">
+                    <button 
+                        id="mic-button"
+                        onclick="startListeningForSpeaking('${q.spanish.replace(/'/g, "\\'")}', '${q.keywords.replace(/'/g, "\\'")}')"
+                        class="p-6 bg-red-500 text-white rounded-full shadow-lg transition duration-150 hover:bg-red-600 w-24 h-24 flex items-center justify-center"
+                    >
+                        <i class="fas fa-microphone text-4xl"></i>
+                    </button>
+                </div>
+                
+                <p id="speaking-status" class="text-center text-red-600 font-semibold mt-2 min-h-[30px]">Click the microphone to start speaking.</p>
+                <p id="spoken-text" class="mt-4 text-xl font-bold text-gray-800 text-center min-h-[30px] border-t pt-4"></p>
+                <div id="speaking-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
+                
+                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
+                    Skip Question
+                </button>
+            `;
+
+            const micButton = document.getElementById('mic-button');
+            if (!SpeechRecognition) {
+                document.getElementById('speaking-status').textContent = "Speech recognition is not supported. Use Chrome, Edge, or Safari.";
+                micButton.disabled = true;
+                micButton.classList.replace('bg-red-500', 'bg-gray-400');
+            }
+        }
+
+        function startListeningForSpeaking(targetSentence, keywords) {
+            if (!recognition || isAnswerLocked) return;
+
+            const micButton = document.getElementById('mic-button');
+            const statusEl = document.getElementById('speaking-status');
+            const spokenTextEl = document.getElementById('spoken-text');
+
+            // Reset UI for listening phase
+            micButton.disabled = true;
+            micButton.classList.add('listening');
+            statusEl.textContent = 'Listening... Speak your answer now.';
+            spokenTextEl.textContent = '';
+            isAnswerLocked = true; 
+
+            // Switch to Spanish recognition for all speaking modes
+            recognition.lang = 'es-ES'; 
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handleSpeechResult(targetSentence, keywords, transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech Recognition Error:', event.error);
+                micButton.classList.remove('listening');
+                statusEl.textContent = `Error: ${event.error}. Click mic to try again.`;
+                micButton.disabled = false;
+                isAnswerLocked = false; 
+            };
+            
+            recognition.onend = () => {
+                if (isAnswerLocked) { // If onend fires but result wasn't handled (e.g., timeout/no speech)
+                    micButton.classList.remove('listening');
+                    if (!spokenTextEl.textContent) {
+                         statusEl.textContent = 'Did not hear response. Click mic to try again.';
+                    }
+                    micButton.disabled = false;
+                    isAnswerLocked = false;
+                }
+            };
+
+            recognition.start();
+        }
+
+        function handleSpeechResult(targetSentence, keywords, transcript) {
+            const micButton = document.getElementById('mic-button');
+            const spokenTextEl = document.getElementById('spoken-text');
+            const feedbackEl = document.getElementById('speaking-feedback');
+            const statusEl = document.getElementById('speaking-status');
+            const q = currentQuestions[currentQuestionIndex];
+            
+            micButton.classList.remove('listening');
+            micButton.disabled = true;
+            statusEl.textContent = 'Analyzing response...';
+            spokenTextEl.textContent = transcript;
+
+            // Simple keyword check (normalized)
+            const normalizedTranscript = normalizeString(transcript);
+            const requiredKeywords = keywords.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+            
+            let keywordMatches = requiredKeywords.filter(k => normalizedTranscript.includes(k)).length;
+            const isCorrect = keywordMatches / requiredKeywords.length >= 0.7; // 70% match required
+
+            // Record history (common data fields)
+            let historyItem = {
+                mode: quizMode,
+                question: q.question,
+                english: q.english,
+                spanish: q.spanish,
+                keywords: keywords,
+                userSelection: transcript,
+                isCorrect: isCorrect,
+                isSkipped: false
+            };
+
+            quizHistory.push(historyItem);
+            
+            // Show feedback
+            feedbackEl.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackEl.classList.remove('text-red-600');
+                feedbackEl.classList.add('text-green-600');
+                feedbackEl.innerHTML = `¡Muy bien! Found ${keywordMatches} of ${requiredKeywords.length} keywords.`;
+                score++;
+            } else {
+                feedbackEl.classList.remove('text-green-600');
+                feedbackEl.classList.add('text-red-600');
+                feedbackEl.innerHTML = `❌ Try again. Found ${keywordMatches} of ${requiredKeywords.length} keywords.`;
+            }
+
+            // Move to next question
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 3000);
+        }
+
+        // --- Mode 5: Pronunciation Logic (TTS + Speech Recognition) ---
+
+        function renderPronunciationInput(sentence) {
+            answerAreaEl.innerHTML = `
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 mb-6">
+                    <!-- Play Audio Button -->
+                    <button 
+                        id="play-tts-button"
+                        onclick="playTTS('${sentence.replace(/'/g, "\\'")}')"
+                        class="tts-button p-4 bg-blue-500 text-white rounded-xl shadow-lg hover:bg-blue-600 font-bold transition duration-150 w-full md:w-auto"
+                    >
+                        <i class="fas fa-volume-up mr-2"></i> Play Spanish Sentence
+                    </button>
+                    
+                    <!-- Microphone Button -->
+                    <button 
+                        id="mic-button"
+                        onclick="startListeningForPronunciation('${sentence.replace(/'/g, "\\'")}')"
+                        class="p-6 bg-red-500 text-white rounded-full shadow-lg transition duration-150 hover:bg-red-600 w-24 h-24 flex items-center justify-center"
+                        disabled
+                    >
+                        <i class="fas fa-microphone text-4xl"></i>
+                    </button>
+                </div>
+
+                <p id="pronunciation-status" class="text-center text-red-600 font-semibold mt-2 min-h-[30px]">Click Play to hear the audio.</p>
+                <p id="spoken-text" class="mt-4 text-xl font-bold text-gray-800 text-center min-h-[30px] border-t pt-4"></p>
+                <div id="speaking-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
+                
+                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
+                    Skip Question
+                </button>
+            `;
+            
+            const micButton = document.getElementById('mic-button');
+            if (SpeechRecognition) {
+                // Mic is initially disabled until user clicks 'Play' and audio is done
+                micButton.disabled = true; 
+            } else {
+                document.getElementById('pronunciation-status').textContent = "Speech recognition is not supported. Use Chrome, Edge, or Safari.";
+                micButton.disabled = true;
+                micButton.classList.replace('bg-red-500', 'bg-gray-400');
+            }
+        }
+        
+        function startListeningForPronunciation(targetSentence) {
+            if (!recognition || isAnswerLocked) return;
+
+            const micButton = document.getElementById('mic-button');
+            const playButton = document.getElementById('play-tts-button');
+            const statusEl = document.getElementById('pronunciation-status');
+            const spokenTextEl = document.getElementById('spoken-text');
+            const feedbackEl = document.getElementById('speaking-feedback');
+
+            // Reset UI for listening phase
+            micButton.disabled = true; // Disable until analysis is done or end event
+            playButton.disabled = true;
+            micButton.classList.add('listening');
+            statusEl.textContent = 'Listening... Please repeat the sentence now.';
+            spokenTextEl.textContent = '';
+            feedbackEl.classList.add('hidden');
+            
+            isAnswerLocked = true; // Lock controls while listening
+
+            // Ensure recognition is set to Spanish
+            recognition.lang = 'es-ES'; 
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handlePronunciationResult(targetSentence, transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech Recognition Error:', event.error);
+                micButton.classList.remove('listening');
+                statusEl.textContent = `Error: ${event.error}. Click mic to try again.`;
+                
+                // Explicitly re-enable buttons on error
+                micButton.disabled = false;
+                playButton.disabled = false;
+                isAnswerLocked = false; 
+            };
+            
+            recognition.onend = () => {
+                // Explicitly re-enable buttons on end if the result wasn't handled (e.g., timeout/no speech)
+                if (isAnswerLocked) {
+                    micButton.classList.remove('listening');
+                    if (!spokenTextEl.textContent) {
+                         statusEl.textContent = 'Did not hear response. Click mic to try again.';
+                    }
+                    micButton.disabled = false;
+                    playButton.disabled = false;
+                    isAnswerLocked = false; 
+                }
+            };
+
+            recognition.start();
+        }
+        
+        function handlePronunciationResult(targetSentence, transcript) {
+            const micButton = document.getElementById('mic-button');
+            const spokenTextEl = document.getElementById('spoken-text');
+            const feedbackEl = document.getElementById('speaking-feedback');
+            const statusEl = document.getElementById('pronunciation-status');
+            const playButton = document.getElementById('play-tts-button'); 
+
+            micButton.classList.remove('listening');
+            micButton.disabled = true; // Keep disabled until next question
+            playButton.disabled = true; // Keep disabled until next question
+            statusEl.textContent = 'Analyzing pronunciation...';
+            spokenTextEl.textContent = transcript;
+
+            const similarityScore = calculateSimilarity(targetSentence, transcript);
+            const requiredThreshold = 70; // Require 70% or better match for "correct"
+            const isCorrect = similarityScore >= requiredThreshold;
+
+            // Record history
+            quizHistory.push({
+                mode: 'pronunciation',
+                targetSentence: targetSentence,
+                userSelection: transcript,
+                similarityScore: similarityScore.toFixed(0),
+                isCorrect: isCorrect,
+                isSkipped: false
+            });
+            
+            // Show feedback
+            feedbackEl.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackEl.classList.remove('text-red-600');
+                feedbackEl.classList.add('text-green-600');
+                feedbackEl.innerHTML = `¡Perfecto! Score: ${similarityScore.toFixed(0)}% 👍`;
+                score++;
+            } else {
+                feedbackEl.classList.remove('text-green-600');
+                feedbackEl.classList.add('text-red-600');
+                feedbackEl.innerHTML = `❌ Score: ${similarityScore.toFixed(0)}%. Try to match the full sentence!`;
+            }
+
+            // Move to next question
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 3000);
+        }
+        
+        // --- Results and Reset Logic (Updated for all 5 modes) ---
+        
+        function showResults() {
+            quizScreenEl.classList.add('hidden');
+            resultsScreenEl.classList.remove('hidden');
+
+            finalScoreEl.textContent = score;
+
+            let message;
+            if (score === 10) {
+                message = "¡Felicidades! You're a true master of this level!";
+            } else if (score >= 8) {
+                message = "Excellent work! Almost perfect, keep practicing!";
+            } else if (score >= 5) {
+                message = "Good job! You've got a solid foundation.";
+            } else {
+                message = "Keep going! Review the vocabulary and try again.";
+            }
+            scoreMessageEl.textContent = message;
+
+            // Render Review List
+            const reviewHTML = quizHistory.map((item, index) => {
+                let content;
+                let promptTitle;
+                let modeLabel;
+                let reviewClass = 'review-incorrect';
+
+                // Determine border color and main status
+                if (item.isSkipped) {
+                    reviewClass = 'review-skipped';
+                } else if (item.isCorrect) {
+                    reviewClass = 'review-correct';
+                }
+
+                if (item.mode === 'mc') {
+                    modeLabel = 'Spanish to English (MC)';
+                    promptTitle = item.spanishWord;
+                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
+                        `
+                        <p class="text-sm text-green-700">✅ Correct English: <span class="font-bold">${item.correctAnswer}</span></p>
+                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
+                            ${item.isCorrect ? 'Your Answer: ' : '❌ Your Answer: '}
+                            <span class="font-bold">${item.userSelection}</span>
+                        </p>
+                    `;
+                } else if (item.mode === 'typing') {
+                    modeLabel = 'English to Spanish (Typing)';
+                    promptTitle = item.englishPrompt;
+                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
+                        `
+                        <p class="text-sm text-green-700">✅ Correct Spanish: <span class="font-bold">${item.spanishWord}</span></p>
+                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
+                            ${item.isCorrect ? 'Your Answer: ' : '❌ Your Answer: '}
+                            <span class="font-bold">${item.userSelection}</span>
+                        </p>
+                    `;
+                } else if (item.mode === 'speaking' || item.mode === 'reverse-speaking') {
+                    modeLabel = item.mode === 'speaking' ? 'Spanish Speaking (Spanish Q)' : 'English to Spanish (English Q)';
+                    promptTitle = item.question;
+                    const expectedText = item.mode === 'speaking' ? `English Translation: ${item.english}` : `Expected Spanish: ${item.spanish}`;
+                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
+                        `
+                        <p class="text-sm text-green-700">✅ Expected Keywords: <span class="font-bold">${item.keywords}</span></p>
+                        <p class="text-sm text-gray-500">${expectedText}</p>
+                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
+                            ${item.isCorrect ? 'Spoken Transcript: ' : '❌ Spoken Transcript: '}
+                            <span class="font-bold">${item.userSelection || 'No speech recorded.'}</span>
+                        </p>
+                    `;
+                } else if (item.mode === 'pronunciation') {
+                    modeLabel = 'Pronunciation & Listening';
+                    promptTitle = item.targetSentence;
+                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
+                        `
+                        <p class="text-sm text-green-700">✅ Target Sentence: <span class="font-bold">${item.targetSentence}</span></p>
+                        <p class="text-sm text-gray-500">Similarity Score: ${item.similarityScore}% (Requires 70% match)</p>
+                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
+                            ${item.isCorrect ? 'Your Transcript: ' : '❌ Your Transcript: '}
+                            <span class="font-bold">${item.userSelection || 'No speech recorded.'}</span>
+                        </p>
+                    `;
+                }
+                
+                return `
+                    <div class="p-4 mb-3 rounded-xl shadow-md border bg-white ${reviewClass}">
+                        <p class="text-xs font-semibold text-gray-500 mb-1">Question ${index + 1} (${modeLabel})</p>
+                        <p class="text-xl font-extrabold text-gray-900 mb-2">${promptTitle}</p>
+                        ${content}
+                    </div>
+                `;
+            }).join('');
+
+            reviewListEl.innerHTML = `
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quiz Review (${currentLevel.toUpperCase()})</h3>
+                <div class="space-y-3">${reviewHTML}</div>
+            `;
+        }
+        
+        // ... (copyReviewToClipboard and resetQuiz remain the same)
+        function copyReviewToClipboard(button) {
+            const modeMap = { 
+                'mc': 'Spanish to English (MC)', 
+                'typing': 'English to Spanish (Typing)', 
+                'speaking': 'Spanish Speaking (Spanish Q)', 
+                'reverse-speaking': 'English to Spanish Speaking (English Q)',
+                'pronunciation': 'Pronunciation & Listening'
+            };
+            const modeText = modeMap[quizMode];
+            let reviewText = `--- Spanish Quiz Results: ${currentLevel.toUpperCase()} (${modeText}) ---\n`;
+            reviewText += `Final Score: ${score}/10\n\n`;
+            reviewText += `--- Review ---\n`;
+
+            quizHistory.forEach((item, index) => {
+                let status, correctDetail, promptDetail;
+
+                if (item.isSkipped) {
+                    status = "SKIPPED";
+                } else {
+                    status = item.isCorrect ? "CORRECT" : "INCORRECT";
+                }
+
+                if (item.mode === 'mc') {
+                    promptDetail = `Spanish: ${item.spanishWord}`;
+                    correctDetail = `English: ${item.correctAnswer}`;
+                } else if (item.mode === 'typing') {
+                    promptDetail = `English: ${item.englishPrompt}`;
+                    correctDetail = `Spanish: ${item.spanishWord}`;
+                } else if (item.mode === 'speaking') {
+                    promptDetail = `Q (ES): ${item.question}`;
+                    correctDetail = `Expected Keywords: ${item.keywords} (Eng: ${item.english})`;
+                } else if (item.mode === 'reverse-speaking') {
+                    promptDetail = `Q (EN): ${item.question}`;
+                    correctDetail = `Expected Spanish: ${item.spanish} (Keywords: ${item.keywords})`;
+                } else if (item.mode === 'pronunciation') {
+                    promptDetail = `Target Sentence: ${item.targetSentence}`;
+                    correctDetail = `Required Match: 70% | Score: ${item.similarityScore}%`;
+                }
+                
+                reviewText += `\n${index + 1}. ${promptDetail} [${status}]\n`;
+                if (!item.isSkipped) {
+                    reviewText += `   ✅ Correct: ${correctDetail}\n`;
+                    reviewText += `   ➡️ Your Answer/Transcript: ${item.userSelection}\n`;
+                }
+            });
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = reviewText;
+            textarea.style.position = 'fixed'; 
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-clipboard"></i> Copy Review to Clipboard';
+                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                }, 2000);
+            } catch (err) {
+                console.error('Could not copy text: ', err);
+                button.innerHTML = '<i class="fas fa-times"></i> Failed to copy!';
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function resetQuiz() {
+            currentLevel = null;
+            currentQuestions = [];
+            currentQuestionIndex = 0;
+            score = 0;
+            isAnswerLocked = false;
+            quizHistory = []; 
+            
+            // Default back to MC and visually update the mode buttons
+            setQuizMode('mc'); 
+
+            resultsScreenEl.classList.add('hidden');
+            quizScreenEl.classList.add('hidden');
+            levelSelectionEl.classList.remove('hidden');
+            reviewListEl.innerHTML = ''; 
+        }
+        
+        // --- Initialization ---
+        window.onload = initializeLevelButtons;
+
+    </script>
+</body>
+</html>
