@@ -1,5 +1,0 @@
-[build]
-  # This line tells Netlify to deploy the contents of the root folder (where index.html is)
-  publish = "." 
-  # This line tells Netlify where to find your serverless functions
-  functions = "netlify/functions"
