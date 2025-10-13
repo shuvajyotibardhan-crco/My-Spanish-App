@@ -662,11 +662,7 @@
                 },
                 model: "gemini-2.5-flash-preview-tts"
             };
-                    if (response.status === 403) {
-                         alert("Audio generation failed: 403 Forbidden. The key restriction is blocking your site. Please ensure you have added your URL using the full wildcard format: *your-domain.netlify.app/*");
-                    } else {
-                        alert("Audio generation failed. Check the console for API error details.");
-                    }
+                   
             const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
