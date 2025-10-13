@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spanish Language Quiz Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -74,10 +73,8 @@
     <div id="app-container" class="container w-full bg-white shadow-xl rounded-2xl p-6 md:p-8">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">🇪🇸 Spanish Language Trainer</h1>
 
-        <!-- Level Selector & Home Screen -->
         <div id="level-selection" class="text-center">
             
-            <!-- Quiz Mode Selection -->
             <div class="mb-6 p-4 bg-gray-100 rounded-xl shadow-inner">
                 <p class="text-md font-semibold text-gray-700 mb-3">1. Select Quiz Mode (10 Questions):</p>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -111,29 +108,22 @@
 
             <p class="text-md font-semibold text-gray-700 mb-3">2. Select Level:</p>
             <div id="level-buttons" class="grid grid-cols-2 gap-4">
-                <!-- Buttons will be dynamically added here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Quiz Screen -->
         <div id="quiz-screen" class="hidden">
             <div class="flex justify-between items-center mb-6">
                 <span id="current-level-display" class="px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full">Level: Novice</span>
                 <span id="question-counter" class="text-lg font-medium text-gray-700">Question 1/10</span>
             </div>
 
-            <!-- Quiz Content Area (Changes based on mode) -->
             <div id="quiz-content" class="p-8 bg-red-100 border-l-4 border-red-500 rounded-xl mb-8 shadow-md min-h-[100px] flex flex-col justify-center items-center">
-                <!-- Content will be injected here (word/prompt) -->
-            </div>
+                </div>
 
-            <!-- Answer Input/Options Area -->
             <div id="answer-area" class="grid grid-cols-1 gap-4">
-                <!-- Answer buttons, input field, or microphone button will be dynamically added here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Results Screen -->
         <div id="results-screen" class="hidden text-center p-6 bg-green-50 rounded-xl shadow-inner">
             <h2 class="text-3xl font-bold text-green-700 mb-4">Quiz Complete! 🎉</h2>
             <p class="text-xl text-gray-700 mb-6">You scored <span id="final-score" class="font-extrabold text-red-600">0</span> out of 10.</p>
@@ -148,11 +138,9 @@
                 </button>
             </div>
 
-            <!-- Quiz Review Section -->
             <div id="review-list" class="mt-6 pt-4 border-t border-gray-200 text-left">
                 <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quiz Review</h3>
-                <!-- Review items will be rendered here -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -294,7 +282,7 @@
                 { word: 'Más vale tarde que nunca', correct: 'Better late than never', distractors: ['Hurry up', 'Never mind', 'That\'s fine'] },
             ]
         };
-        
+
         // Data for Speaking modes (Expanded)
         const speakingData = {
             forward: { // Spanish Q, User Answers in Spanish
@@ -354,7 +342,7 @@
                 fluent: [/* ... similar complexity ... */],
             }
         };
-        
+
         // Data for NEW Pronunciation Mode (Expanded to 30 sentences per level)
         const pronunciationData = {
             novice: [
@@ -491,7 +479,7 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let isAnswerLocked = false;
-        let quizHistory = []; 
+        let quizHistory = [];
         let quizMode = 'mc'; // 'mc', 'typing', 'speaking', 'reverse-speaking', 'pronunciation'
 
         // Web Speech API Initialization
@@ -504,21 +492,20 @@
             recognition.maxAlternatives = 1;
         }
 
-
         // --- DOM Elements & Utilities ---
         const levelSelectionEl = document.getElementById('level-selection');
         const levelButtonsEl = document.getElementById('level-buttons');
         const quizScreenEl = document.getElementById('quiz-screen');
         const resultsScreenEl = document.getElementById('results-screen');
-        const quizContentEl = document.getElementById('quiz-content'); 
-        const answerAreaEl = document.getElementById('answer-area'); 
+        const quizContentEl = document.getElementById('quiz-content');
+        const answerAreaEl = document.getElementById('answer-area');
         const questionCounterEl = document.getElementById('question-counter');
         const currentLevelDisplayEl = document.getElementById('current-level-display');
         const finalScoreEl = document.getElementById('final-score');
         const scoreMessageEl = document.getElementById('score-message');
         const reviewListEl = document.getElementById('review-list');
         const copyButtonEl = document.getElementById('copy-button');
-        
+
         let audioContext = null;
 
         function shuffleArray(array) {
@@ -539,22 +526,19 @@
             const normalizedTranscript = normalizeString(transcript);
 
             if (!normalizedTranscript.length) return 0;
-            
+
             const targetWords = normalizedTarget.split(/\s+/).filter(w => w.length > 0);
             const transcriptWords = normalizedTranscript.split(/\s+/).filter(w => w.length > 0);
 
             if (targetWords.length === 0) return 0;
 
             let matches = 0;
-            const matchedIndices = new Set(); 
-
+            const matchedIndices = new Set();
+            
             // Simple search for matching words (ignoring word order and repetition)
             for (const tWord of transcriptWords) {
                 // Find if the spoken word matches any remaining target word
-                const targetIndex = targetWords.findIndex((tw, i) => 
-                    !matchedIndices.has(i) && tw === tWord
-                );
-                
+                const targetIndex = targetWords.findIndex((tw, i) => !matchedIndices.has(i) && tw === tWord );
                 if (targetIndex !== -1) {
                     matches++;
                     matchedIndices.add(targetIndex);
@@ -570,25 +554,438 @@
             const radioEl = document.getElementById(`mode-${mode}`);
             if (radioEl) {
                 radioEl.checked = true;
-                // Update styling of mode buttons
-                document.querySelectorAll('input[name="quiz_mode"]').forEach(input => {
-                    const label = input.closest('label');
-                    if (input.value === mode) {
-                         label.classList.add('bg-red-200');
-                         label.classList.remove('bg-white', 'text-gray-700', 'font-medium');
-                         label.querySelector('span').classList.add('font-bold', 'text-gray-800');
-                    } else {
-                         label.classList.remove('bg-red-200');
-                         label.classList.add('bg-white');
-                         label.querySelector('span').classList.remove('font-bold', 'text-gray-800');
-                         label.querySelector('span').classList.add('font-medium', 'text-gray-700');
-                    }
-                });
+            }
+
+            // Update styling of mode buttons
+            document.querySelectorAll('input[name="quiz_mode"]').forEach(input => {
+                const label = input.closest('label');
+                if (input.value === mode) {
+                    label.classList.add('bg-red-200');
+                    label.classList.remove('bg-white');
+                    label.querySelector('span').classList.add('font-bold', 'text-gray-800');
+                    label.querySelector('span').classList.remove('font-medium', 'text-gray-700');
+                } else {
+                    label.classList.remove('bg-red-200');
+                    label.classList.add('bg-white');
+                    label.querySelector('span').classList.remove('font-bold', 'text-gray-800');
+                    label.querySelector('span').classList.add('font-medium', 'text-gray-700');
+                }
+            });
+
+            // Adjust level buttons if a level is already selected, to re-initialize for the new mode
+            if (currentLevel) {
+                // This doesn't start the quiz, just resets the view if level was already chosen
+                currentLevel = null;
+                initializeLevelButtons(); 
             }
         }
 
-        // --- TTS and Audio Playback Helpers ---
 
+        // --- UI Rendering ---
+
+        function initializeLevelButtons() {
+            levelButtonsEl.innerHTML = '';
+            const levels = ['novice', 'intermediate', 'advanced', 'fluent'];
+            levels.forEach(level => {
+                const button = document.createElement('button');
+                button.className = 'level-button bg-white text-red-600 border border-red-500 py-3 rounded-xl font-bold shadow-md hover:bg-red-500 hover:text-white transition duration-200';
+                button.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+                button.onclick = () => startQuiz(level);
+                levelButtonsEl.appendChild(button);
+            });
+        }
+
+        function renderQuizContent() {
+            const question = currentQuestions[currentQuestionIndex];
+            const isSpeakingMode = ['speaking', 'reverse-speaking'].includes(quizMode);
+            const isPronunciationMode = quizMode === 'pronunciation';
+            const isTypingMode = quizMode === 'typing';
+
+            quizContentEl.innerHTML = '';
+            answerAreaEl.innerHTML = '';
+
+            // 1. Render Question/Prompt Area
+            let promptText = '';
+            if (isSpeakingMode) {
+                promptText = question.question; // Spanish or English question
+            } else if (isPronunciationMode) {
+                promptText = question; // Spanish sentence
+            } else if (isTypingMode) {
+                promptText = question.correct; // English translation for typing
+            } else { // MC mode
+                promptText = question.word; // Spanish word/phrase
+            }
+
+            // Add audio button for Spanish text
+            if (isPronunciationMode || quizMode === 'mc') {
+                const ttsText = isPronunciationMode ? promptText : question.word;
+                const audioButton = document.createElement('button');
+                audioButton.id = 'tts-button';
+                audioButton.className = 'tts-button flex items-center justify-center p-3 text-white bg-red-500 rounded-full shadow-lg hover:bg-red-600 disabled:opacity-70 disabled:cursor-not-allowed';
+                audioButton.innerHTML = '<i class="fas fa-volume-up text-xl"></i>';
+                audioButton.onclick = () => generateAudio(ttsText);
+                
+                const promptContainer = document.createElement('div');
+                promptContainer.className = 'flex flex-col items-center space-y-4';
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-3xl font-extrabold text-gray-800 text-center';
+                textSpan.textContent = promptText;
+
+                promptContainer.appendChild(textSpan);
+                promptContainer.appendChild(audioButton);
+
+                quizContentEl.appendChild(promptContainer);
+            } else {
+                quizContentEl.innerHTML = `<span class="text-3xl font-extrabold text-gray-800 text-center">${promptText}</span>`;
+            }
+
+            // 2. Render Answer Area
+            if (isSpeakingMode || isPronunciationMode) {
+                renderSpeechInput();
+            } else if (isTypingMode) {
+                renderTypingInput();
+            } else { // MC Mode
+                renderMultipleChoice(question);
+            }
+
+            // 3. Update Question Counter
+            questionCounterEl.textContent = `Question ${currentQuestionIndex + 1}/10`;
+            currentLevelDisplayEl.textContent = `Level: ${currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1)}`;
+        }
+
+        function renderMultipleChoice(question) {
+            const options = shuffleArray([question.correct, ...question.distractors]);
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'answer-button bg-white text-gray-800 border border-gray-300 py-3 rounded-xl font-semibold shadow-sm hover:bg-gray-100 transition duration-150';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option);
+                answerAreaEl.appendChild(button);
+            });
+
+            // Skip button for MC
+            const skipButton = document.createElement('button');
+            skipButton.className = 'mt-2 text-gray-500 font-medium hover:text-red-500 transition duration-150';
+            skipButton.textContent = 'Skip Question';
+            skipButton.onclick = () => skipQuestion();
+            answerAreaEl.appendChild(skipButton);
+        }
+
+        function renderTypingInput() {
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'flex flex-col space-y-4';
+
+            const input = document.createElement('input');
+            input.id = 'typing-input';
+            input.type = 'text';
+            input.className = 'w-full px-4 py-3 border border-gray-300 rounded-xl text-lg focus:ring-red-500 focus:border-red-500';
+            input.placeholder = 'Type your Spanish answer here...';
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter' && !isAnswerLocked) {
+                    checkTypingAnswer(input.value);
+                }
+            };
+            inputGroup.appendChild(input);
+
+            const submitButton = document.createElement('button');
+            submitButton.className = 'py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition duration-150';
+            submitButton.textContent = 'Submit Answer';
+            submitButton.onclick = () => checkTypingAnswer(document.getElementById('typing-input').value);
+            inputGroup.appendChild(submitButton);
+
+            const skipButton = document.createElement('button');
+            skipButton.className = 'mt-2 text-gray-500 font-medium hover:text-red-500 transition duration-150';
+            skipButton.textContent = 'Skip Question';
+            skipButton.onclick = () => skipQuestion();
+            inputGroup.appendChild(skipButton);
+
+            answerAreaEl.appendChild(inputGroup);
+            input.focus();
+        }
+
+        function renderSpeechInput() {
+            const isPronunciationMode = quizMode === 'pronunciation';
+            const micButton = document.createElement('button');
+            micButton.id = 'mic-button';
+            micButton.className = 'w-full py-4 flex items-center justify-center bg-red-500 text-white text-xl font-bold rounded-xl shadow-lg hover:bg-red-600 transition duration-150';
+            micButton.innerHTML = '<i class="fas fa-microphone mr-3"></i> Start Speaking';
+            micButton.onclick = startListening;
+            answerAreaEl.appendChild(micButton);
+
+            const statusText = document.createElement('p');
+            statusText.id = 'speech-status';
+            statusText.className = 'text-center text-gray-600 mt-4 h-6';
+            answerAreaEl.appendChild(statusText);
+
+            // Display target text for Speaking modes to help user, but hide for Pronunciation (since it's already the prompt)
+            if (!isPronunciationMode) {
+                const targetTextContainer = document.createElement('div');
+                targetTextContainer.className = 'mt-6 p-4 bg-gray-100 rounded-lg border-l-4 border-gray-300';
+                targetTextContainer.innerHTML = `<p class="text-sm text-gray-700">**Target Answer (English):** <span class="font-bold">${currentQuestions[currentQuestionIndex].english}</span></p>`;
+                answerAreaEl.appendChild(targetTextContainer);
+            }
+        }
+        
+        // --- Core Quiz Logic ---
+
+        function startQuiz(level) {
+            currentLevel = level;
+            currentQuestionIndex = 0;
+            score = 0;
+            quizHistory = [];
+            isAnswerLocked = false;
+
+            // Determine question set based on mode
+            if (['mc', 'typing'].includes(quizMode)) {
+                currentQuestions = shuffleArray([...wordData[level]]).slice(0, 10);
+            } else if (quizMode === 'pronunciation') {
+                // For pronunciation, we use the sentences directly
+                currentQuestions = shuffleArray([...pronunciationData[level]]).slice(0, 10);
+            } else { // Speaking modes
+                const direction = quizMode === 'speaking' ? 'forward' : 'reverse';
+                currentQuestions = shuffleArray([...speakingData[direction][level]]).slice(0, 10);
+            }
+
+            levelSelectionEl.classList.add('hidden');
+            resultsScreenEl.classList.add('hidden');
+            quizScreenEl.classList.remove('hidden');
+            renderQuizContent();
+        }
+
+        function checkAnswer(selectedOption) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+            
+            const question = currentQuestions[currentQuestionIndex];
+            const isCorrect = selectedOption === question.correct;
+            
+            // Highlight buttons
+            document.querySelectorAll('.answer-button').forEach(button => {
+                const isCorrectButton = button.textContent === question.correct;
+                const isSelectedButton = button.textContent === selectedOption;
+
+                if (isCorrectButton) {
+                    button.classList.add('correct');
+                    button.classList.remove('bg-white', 'hover:bg-gray-100');
+                } else if (isSelectedButton) {
+                    button.classList.add('incorrect');
+                    button.classList.remove('bg-white', 'hover:bg-gray-100');
+                } else {
+                    button.disabled = true;
+                }
+            });
+
+            recordResult(isCorrect, question.word, selectedOption, question.correct, 'Multiple Choice');
+
+            if (isCorrect) {
+                score++;
+            }
+
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function checkTypingAnswer(userAnswer) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+
+            const question = currentQuestions[currentQuestionIndex];
+            const normalizedUser = normalizeString(userAnswer);
+            const normalizedCorrect = normalizeString(question.word); // Spanish word is the correct answer
+
+            const isCorrect = normalizedUser === normalizedCorrect;
+            const inputEl = document.getElementById('typing-input');
+            const submitButton = answerAreaEl.querySelector('button');
+            const skipButton = answerAreaEl.querySelector('button:last-child');
+            
+            inputEl.disabled = true;
+            submitButton.disabled = true;
+            skipButton.disabled = true;
+
+            let resultText = '';
+            if (isCorrect) {
+                inputEl.classList.add('correct');
+                score++;
+                resultText = 'Correct!';
+            } else {
+                inputEl.classList.add('incorrect');
+                resultText = `Incorrect. Correct answer was: "${question.word}"`;
+            }
+
+            // Display result
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `mt-4 p-3 rounded-lg font-bold text-white ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`;
+            resultDiv.textContent = resultText;
+            answerAreaEl.appendChild(resultDiv);
+
+
+            recordResult(isCorrect, question.correct, userAnswer, question.word, 'Typing');
+
+            setTimeout(nextQuestion, 2500);
+        }
+
+        // Handles the result of a speaking quiz mode (speaking/reverse-speaking/pronunciation)
+        function checkSpeechAnswer(transcript) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+
+            const question = currentQuestions[currentQuestionIndex];
+            const target = quizMode === 'pronunciation' ? question : question.spanish;
+            const similarity = calculateSimilarity(target, transcript);
+            const threshold = 70; // 70% word match threshold
+            const isCorrect = similarity >= threshold;
+            const feedbackColor = isCorrect ? 'bg-green-500' : 'bg-red-500';
+            
+            if (isCorrect) {
+                score++;
+            }
+
+            const micButton = document.getElementById('mic-button');
+            const statusText = document.getElementById('speech-status');
+            micButton.disabled = true;
+            micButton.classList.remove('listening', 'bg-red-500', 'hover:bg-red-600');
+            micButton.classList.add('bg-gray-400');
+            micButton.innerHTML = '<i class="fas fa-microphone-slash mr-3"></i> Finished';
+            statusText.classList.remove('listening');
+
+            // Display results
+            let targetDisplay = quizMode === 'pronunciation' ? '' : `Expected: "${target}"`;
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `mt-4 p-3 rounded-xl shadow-lg ${feedbackColor} text-white`;
+            resultDiv.innerHTML = `
+                <p class="font-bold text-xl">${isCorrect ? 'Correct!' : 'Incorrect.'}</p>
+                <p>You said: **"${transcript || 'Nothing detected'}"**</p>
+                ${quizMode === 'pronunciation' ? `<p>Target: **"${target}"**</p>` : ''}
+                <p class="mt-2 text-sm">Similarity Score: ${similarity.toFixed(0)}% (Threshold: ${threshold}%)</p>
+                ${targetDisplay && quizMode !== 'pronunciation' ? `<p class="mt-2 text-sm">${targetDisplay}</p>` : ''}
+            `;
+            answerAreaEl.appendChild(resultDiv);
+
+
+            recordResult(isCorrect, target, transcript, target, 'Speaking/Pronunciation', similarity.toFixed(0));
+
+            setTimeout(nextQuestion, 4000);
+        }
+
+        // --- Speaking/Listening Logic ---
+
+        function startListening() {
+            if (!recognition) {
+                alert('Your browser does not support speech recognition. Please try the multiple choice or typing modes.');
+                return;
+            }
+
+            const micButton = document.getElementById('mic-button');
+            const statusText = document.getElementById('speech-status');
+            
+            // Reset previous state
+            micButton.disabled = true;
+            micButton.classList.add('listening');
+            micButton.innerHTML = '<i class="fas fa-microphone mr-3"></i> Listening...';
+            statusText.textContent = 'Speak now in Spanish.';
+
+            recognition.start();
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                micButton.classList.remove('listening');
+                statusText.textContent = `Processing: "${transcript}"`;
+                recognition.stop();
+                checkSpeechAnswer(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                micButton.classList.remove('listening');
+                micButton.disabled = false;
+                micButton.innerHTML = '<i class="fas fa-microphone mr-3"></i> Try Again';
+                statusText.textContent = `Error: ${event.error}. Try again.`;
+                recognition.stop();
+            };
+            
+            recognition.onend = () => {
+                if (!isAnswerLocked) {
+                    micButton.disabled = false;
+                    micButton.innerHTML = '<i class="fas fa-microphone mr-3"></i> Start Speaking';
+                    statusText.textContent = 'Listening ended. Click to try again.';
+                }
+            };
+        }
+
+        // --- AI-Powered Speech Synthesis (Text-to-Speech) ---
+        async function generateAudio(text) {
+            const ttsButton = document.getElementById('tts-button');
+            if (ttsButton) {
+                ttsButton.disabled = true;
+                ttsButton.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i>';
+            }
+
+            // CORRECTED: Use a Netlify serverless function proxy to securely call the Gemini API
+            const functionUrl = '/.netlify/functions/generate-tts-audio';
+
+            try {
+                const response = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        // Pass the necessary parameters to the serverless function
+                        text_to_speak: `Say the following Spanish phrase as a Spanish language instructor: ${text}`,
+                        model: 'gemini-2.5-flash-preview-tts',
+                        voice: 'es-ES-Wavenet-D'
+                    })
+                });
+
+                if (!response.ok) {
+                    // Handle errors returned by the Netlify function
+                    const errorData = await response.json();
+                    console.error('TTS Function error:', errorData);
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                // Retrieve the base64 audio content from the serverless function's response
+                const base64Audio = data.audioContent; 
+                
+                // Audio Playback Logic
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const audioBuffer = base64ToArrayBuffer(base64Audio);
+
+                audioContext.decodeAudioData(audioBuffer, (buffer) => {
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(audioContext.destination);
+                    source.start(0);
+
+                    source.onended = () => {
+                        if (ttsButton) {
+                            ttsButton.disabled = false;
+                            ttsButton.innerHTML = '<i class="fas fa-volume-up text-xl"></i>';
+                        }
+                    };
+                }, (e) => {
+                    console.error("Error decoding audio data", e);
+                    alert("Failed to play audio. Check console for details.");
+                    if (ttsButton) {
+                        ttsButton.disabled = false;
+                        ttsButton.innerHTML = '<i class="fas fa-volume-up text-xl"></i>';
+                    }
+                });
+
+            } catch (error) {
+                console.error("TTS Fetch Error:", error);
+                alert(`Error generating audio: ${error.message}`);
+                if (ttsButton) {
+                    ttsButton.disabled = false;
+                    ttsButton.innerHTML = '<i class="fas fa-volume-up text-xl"></i>';
+                }
+            }
+        }
+        
+        // Utility function to convert Base64 to ArrayBuffer
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -599,842 +996,153 @@
             return bytes.buffer;
         }
 
-        function pcmToWav(pcm16, sampleRate) {
-            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
-            const view = new DataView(buffer);
-            
-            // RIFF chunk descriptor
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + pcm16.length * 2, true);
-            writeString(view, 8, 'WAVE');
-            
-            // FMT chunk
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true); // chunkSize
-            view.setUint16(20, 1, true); // wFormatTag (1 for PCM)
-            view.setUint16(22, 1, true); // wChannels (1 for mono)
-            view.setUint32(24, sampleRate, true); // dwSamplesPerSec
-            view.setUint32(28, sampleRate * 2, true); // dwAvgBytesPerSec
-            view.setUint16(32, 2, true); // wBlockAlign (2 bytes/sample)
-            view.setUint16(34, 16, true); // wBitsPerSample
-            
-            // Data chunk
-            writeString(view, 36, 'data');
-            view.setUint32(40, pcm16.length * 2, true);
-            
-            // Write PCM data
-            let offset = 44;
-            for (let i = 0; i < pcm16.length; i++, offset += 2) {
-                view.setInt16(offset, pcm16[i], true);
+        // --- Navigation and Results ---
+
+        function recordResult(isCorrect, prompt, userAnswer, correctAnswer, type, similarity = null) {
+            let questionPrompt = prompt;
+            let answerDisplay = correctAnswer;
+
+            // Adjust prompt/answer display for speaking modes
+            if (['speaking', 'reverse-speaking'].includes(quizMode) && type === 'Speaking/Pronunciation') {
+                questionPrompt = currentQuestions[currentQuestionIndex].question; // The prompt question
+                answerDisplay = currentQuestions[currentQuestionIndex].spanish; // The target Spanish answer
+            } else if (quizMode === 'typing' && type === 'Typing') {
+                questionPrompt = currentQuestions[currentQuestionIndex].correct; // The English word
+                answerDisplay = currentQuestions[currentQuestionIndex].word; // The Spanish word
             }
-            
-            return new Blob([view], { type: 'audio/wav' });
+
+            quizHistory.push({
+                index: currentQuestionIndex + 1,
+                isCorrect,
+                prompt: questionPrompt,
+                target: answerDisplay,
+                userAnswer: userAnswer,
+                type: type,
+                similarity: similarity
+            });
         }
-        
-        function writeString(view, offset, str) {
-            for (let i = 0; i < str.length; i++) {
-                view.setUint8(offset + i, str.charCodeAt(i));
-            }
-        }
-
-        async function playTTS(sentence) {
-            const playButton = document.getElementById('play-tts-button');
-            const micButton = document.getElementById('mic-button'); 
-            const statusEl = document.getElementById('pronunciation-status');
-            
-            if (!playButton || !statusEl || !micButton) return;
-
-            playButton.disabled = true;
-            micButton.disabled = true; 
-            statusEl.textContent = 'Generating Audio...';
-
-            const payload = {
-                contents: [{
-                    parts: [{ text: sentence }]
-                }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Kore" } 
-                        }
-                    }
-                },
-                model: "gemini-2.5-flash-preview-tts"
-            };
-                   
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-                
-                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
-                    
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    
-                    const audio = new Audio(audioUrl);
-                    statusEl.textContent = 'Playing...';
-                    audio.onended = () => {
-                        statusEl.textContent = 'Ready to repeat. Click the microphone.';
-                        playButton.disabled = false;
-                        micButton.disabled = false; 
-                    };
-                    audio.play();
-                } else {
-                    console.error("TTS API response error:", result);
-                    statusEl.textContent = 'Error: Failed to generate audio.';
-                    playButton.disabled = false;
-                    micButton.disabled = false; 
-                }
-            } catch (error) {
-                console.error('Error fetching TTS:', error);
-                statusEl.textContent = 'Error: Check connection or API status.';
-                playButton.disabled = false;
-                micButton.disabled = false; 
-            }
-        }
-
-
-        // --- Skip Functionality (New) ---
 
         function skipQuestion() {
             if (isAnswerLocked) return;
             isAnswerLocked = true;
 
-            const currentQuestion = currentQuestions[currentQuestionIndex];
-            let reviewEntry = {
-                mode: quizMode,
-                isCorrect: false,
-                isSkipped: true,
-                userSelection: 'Skipped',
-                questionTitle: (quizMode === 'pronunciation') ? currentQuestion : currentQuestion.word || currentQuestion.question || currentQuestion.correct,
-            };
+            const question = currentQuestions[currentQuestionIndex];
+            const prompt = ['mc', 'typing'].includes(quizMode) ? question.word : (quizMode === 'pronunciation' ? question : question.question);
+            const target = ['mc', 'typing'].includes(quizMode) ? question.correct : (quizMode === 'pronunciation' ? question : question.spanish);
             
-            if (quizMode === 'pronunciation') {
-                reviewEntry.targetSentence = currentQuestion;
-            }
-
-            quizHistory.push(reviewEntry);
-
-            // Clear any lingering feedback
-            const feedbackEl = document.getElementById('feedback');
-            if (feedbackEl) feedbackEl.remove();
-
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 300); 
+            recordResult(false, prompt, 'SKIPPED', target, 'Skipped');
+            
+            nextQuestion();
         }
 
-        // --- Core Quiz Logic ---
-
-        function initializeLevelButtons() {
-            setQuizMode('mc'); 
-
-            const levels = [
-                { key: 'novice', name: 'Novice (A1-A2)', color: 'bg-red-500' },
-                { key: 'intermediate', name: 'Intermediate (B1-B2)', color: 'bg-amber-500' },
-                { key: 'advanced', name: 'Advanced (C1)', color: 'bg-green-500' },
-                { key: 'fluent', name: 'Fluent (C2)', color: 'bg-blue-500' },
-            ];
-
-            levelButtonsEl.innerHTML = levels.map(level => `
-                <button 
-                    onclick="startQuiz('${level.key}')"
-                    class="level-button py-4 text-white font-bold rounded-xl shadow-lg transition duration-200 hover:scale-[1.03] ${level.color} focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${level.color.split('-')[1]}-500"
-                >
-                    ${level.name}
-                </button>
-            `).join('');
-        }
-
-        function startQuiz(levelKey) {
-            currentLevel = levelKey;
-            
-            let wordBank;
-            if (quizMode === 'mc' || quizMode === 'typing') {
-                wordBank = wordData[levelKey] || [];
-            } else if (quizMode === 'speaking') {
-                wordBank = speakingData.forward[levelKey] || [];
-            } else if (quizMode === 'reverse-speaking') {
-                 wordBank = speakingData.reverse[levelKey] || [];
-            } else if (quizMode === 'pronunciation') {
-                 wordBank = pronunciationData[levelKey] || [];
-            } else {
-                 wordBank = [];
-            }
-            
-            const fullWordBank = [...wordBank];
-            shuffleArray(fullWordBank);
-            currentQuestions = fullWordBank.slice(0, 10); // Take only 10 questions
-            
-            currentQuestionIndex = 0;
-            score = 0;
-            quizHistory = []; 
-
-            if (copyButtonEl) {
-                copyButtonEl.innerHTML = '<i class="fas fa-clipboard"></i> Copy Review to Clipboard';
-                copyButtonEl.classList.remove('bg-green-500', 'hover:bg-green-600');
-                copyButtonEl.classList.add('bg-blue-500', 'hover:bg-blue-600');
-            }
-
-            levelSelectionEl.classList.add('hidden');
-            resultsScreenEl.classList.add('hidden');
-            quizScreenEl.classList.remove('hidden');
-
-            const levelName = levelKey.charAt(0).toUpperCase() + levelKey.slice(1);
-            currentLevelDisplayEl.textContent = `Level: ${levelName}`;
-            
-            loadQuestion();
-        }
-
-        function loadQuestion() {
+        function nextQuestion() {
+            currentQuestionIndex++;
             isAnswerLocked = false;
-            // Clear previous answers/feedback
-            answerAreaEl.innerHTML = '';
-            
-            if (currentQuestionIndex >= currentQuestions.length) {
+
+            if (currentQuestionIndex < currentQuestions.length) {
+                renderQuizContent();
+            } else {
                 showResults();
-                return;
-            }
-
-            const q = currentQuestions[currentQuestionIndex];
-            
-            questionCounterEl.textContent = `Question ${currentQuestionIndex + 1}/10`;
-
-            if (quizMode === 'mc') {
-                quizContentEl.innerHTML = `
-                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">Spanish Word</p>
-                    <p id="spanish-word" class="text-4xl font-extrabold text-gray-900 text-center">${q.word}</p>
-                    <p class="text-center text-gray-600 mt-2">Pick the correct English meaning:</p>
-                `;
-                renderMultipleChoiceButtons(q);
-            } else if (quizMode === 'typing') {
-                quizContentEl.innerHTML = `
-                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">English Prompt</p>
-                    <p id="english-word" class="text-4xl font-extrabold text-gray-900 text-center">${q.correct}</p>
-                    <p class="text-center text-gray-600 mt-2">Type the correct Spanish translation:</p>
-                `;
-                renderTypingInput(q);
-            } else if (quizMode === 'speaking' || quizMode === 'reverse-speaking') {
-                const isForward = quizMode === 'speaking';
-                 quizContentEl.innerHTML = `
-                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">${isForward ? 'Spanish Question' : 'English Question'}</p>
-                    <p id="speaking-question" class="text-4xl font-extrabold text-gray-900 text-center">${q.question}</p>
-                    <p class="text-center text-gray-600 mt-2">Speak your Spanish answer after clicking the mic:</p>
-                `;
-                renderSpeakingInput(q);
-            } else if (quizMode === 'pronunciation') {
-                const sentence = q;
-                quizContentEl.innerHTML = `
-                    <p class="text-3xl font-bold text-gray-700 text-center mb-1">Repeat This Sentence</p>
-                    <p id="target-sentence" class="text-4xl font-extrabold text-gray-900 text-center">${sentence}</p>
-                    <p id="pronunciation-status" class="text-center text-red-600 font-semibold mt-2">Click Play to hear the audio.</p>
-                `;
-                renderPronunciationInput(sentence);
             }
         }
 
-        // --- Mode 1: Multiple Choice Logic ---
-
-        function renderMultipleChoiceButtons(q) {
-            const allAnswers = shuffleArray([q.correct, ...q.distractors]);
-            
-            answerAreaEl.innerHTML = allAnswers.map(answer => `
-                <button 
-                    onclick="handleMultipleChoiceAnswer('${q.word.replace(/'/g, "\\'")}', '${answer.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}', this)"
-                    class="answer-button w-full py-4 text-gray-800 font-semibold bg-gray-100 rounded-xl shadow-md border border-gray-300 hover:bg-gray-200"
-                    data-answer="${answer}"
-                >
-                    ${answer}
-                </button>
-            `).join('');
-
-            // Add Skip button
-             answerAreaEl.innerHTML += `
-                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
-                    Skip Question
-                </button>
-            `;
-        }
-
-        function handleMultipleChoiceAnswer(spanishWord, selectedAnswer, correctAnswer, clickedButton) {
-            if (isAnswerLocked) return;
-            isAnswerLocked = true;
-
-            const isCorrect = selectedAnswer === correctAnswer;
-
-            // Apply feedback styling
-            document.querySelectorAll('.answer-button').forEach(btn => {
-                btn.disabled = true; // Disable all buttons
-                if (btn.getAttribute('data-answer') === correctAnswer) {
-                    btn.classList.add('correct');
-                    btn.classList.remove('bg-gray-100');
-                } else if (btn === clickedButton) {
-                    btn.classList.add('incorrect');
-                    btn.classList.remove('bg-gray-100', 'text-gray-800');
-                } else {
-                    btn.classList.remove('bg-gray-100', 'hover:bg-gray-200');
-                    btn.classList.add('bg-gray-50', 'text-gray-400'); // Dim incorrect distractors
-                }
-            });
-
-            if (isCorrect) {
-                score++;
-            }
-
-            // Record history
-            quizHistory.push({
-                mode: 'mc',
-                spanishWord: spanishWord,
-                correctAnswer: correctAnswer,
-                userSelection: selectedAnswer,
-                isCorrect: isCorrect,
-                isSkipped: false
-            });
-
-            // Move to next question after delay
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 1500); 
-        }
-
-        // --- Mode 2: Typing Logic ---
-
-        function renderTypingInput(q) {
-            answerAreaEl.innerHTML = `
-                <input type="text" id="typing-input" placeholder="Type Spanish answer here..." 
-                       class="w-full p-4 border-2 border-red-300 rounded-xl text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                       onkeydown="if(event.key === 'Enter') handleTypingAnswer('${q.word.replace(/'/g, "\\'")}')">
-                
-                <div class="flex flex-wrap justify-center gap-2 mt-2 mb-4">
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('á')">á</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('é')">é</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('í')">í</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ó')">ó</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ú')">ú</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ñ')">ñ</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('ü')">ü</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('¿')">¿</button>
-                    <button class="py-1 px-3 bg-gray-200 rounded-lg text-lg font-bold" onclick="insertSpecialChar('¡')">¡</button>
-                </div>
-                
-                <button id="submit-typing" onclick="handleTypingAnswer('${q.word.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}')" 
-                        class="w-full py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition duration-150">
-                    Submit Answer
-                </button>
-                <div id="typing-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
-                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
-                    Skip Question
-                </button>
-            `;
-        }
-
-        function insertSpecialChar(char) {
-            const input = document.getElementById('typing-input');
-            if (input) {
-                const start = input.selectionStart;
-                const end = input.selectionEnd;
-                input.value = input.value.substring(0, start) + char + input.value.substring(end);
-                input.focus();
-                input.selectionStart = input.selectionEnd = start + char.length;
-            }
-        }
-
-        function handleTypingAnswer(correctAnswerSpanish, englishPrompt) {
-            if (isAnswerLocked) return;
-            isAnswerLocked = true;
-
-            const input = document.getElementById('typing-input');
-            const feedbackEl = document.getElementById('typing-feedback');
-            const submitBtn = document.getElementById('submit-typing');
-            const userAnswer = input ? input.value : '';
-
-            // Simple normalization for comparison (removes punctuation, ignores case)
-            const normalizedUser = normalizeString(userAnswer);
-            const normalizedCorrect = normalizeString(correctAnswerSpanish);
-
-            const isCorrect = normalizedUser === normalizedCorrect;
-            
-            submitBtn.disabled = true;
-            input.disabled = true;
-            feedbackEl.classList.remove('hidden');
-
-            if (isCorrect) {
-                score++;
-                feedbackEl.classList.add('text-green-600');
-                feedbackEl.classList.remove('text-red-600');
-                feedbackEl.innerHTML = `¡Correcto! <i class="fas fa-check-circle"></i>`;
-                input.classList.add('border-green-500');
-            } else {
-                feedbackEl.classList.add('text-red-600');
-                feedbackEl.classList.remove('text-green-600');
-                feedbackEl.innerHTML = `❌ Incorrecto. Correct answer was: <span class="font-extrabold">${correctAnswerSpanish}</span>`;
-                input.classList.add('border-red-500');
-            }
-
-            // Record history
-            quizHistory.push({
-                mode: 'typing',
-                spanishWord: correctAnswerSpanish,
-                englishPrompt: englishPrompt,
-                userSelection: userAnswer,
-                isCorrect: isCorrect,
-                isSkipped: false
-            });
-
-            // Move to next question after delay
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 3000); 
-        }
-
-        // --- Mode 3 & 4: Speaking Logic ---
-
-        function renderSpeakingInput(q) {
-            answerAreaEl.innerHTML = `
-                <div class="flex justify-center mb-6">
-                    <button 
-                        id="mic-button"
-                        onclick="startListeningForSpeaking('${q.spanish.replace(/'/g, "\\'")}', '${q.keywords.replace(/'/g, "\\'")}')"
-                        class="p-6 bg-red-500 text-white rounded-full shadow-lg transition duration-150 hover:bg-red-600 w-24 h-24 flex items-center justify-center"
-                    >
-                        <i class="fas fa-microphone text-4xl"></i>
-                    </button>
-                </div>
-                
-                <p id="speaking-status" class="text-center text-red-600 font-semibold mt-2 min-h-[30px]">Click the microphone to start speaking.</p>
-                <p id="spoken-text" class="mt-4 text-xl font-bold text-gray-800 text-center min-h-[30px] border-t pt-4"></p>
-                <div id="speaking-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
-                
-                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
-                    Skip Question
-                </button>
-            `;
-
-            const micButton = document.getElementById('mic-button');
-            if (!SpeechRecognition) {
-                document.getElementById('speaking-status').textContent = "Speech recognition is not supported. Use Chrome, Edge, or Safari.";
-                micButton.disabled = true;
-                micButton.classList.replace('bg-red-500', 'bg-gray-400');
-            }
-        }
-
-        function startListeningForSpeaking(targetSentence, keywords) {
-            if (!recognition || isAnswerLocked) return;
-
-            const micButton = document.getElementById('mic-button');
-            const statusEl = document.getElementById('speaking-status');
-            const spokenTextEl = document.getElementById('spoken-text');
-
-            // Reset UI for listening phase
-            micButton.disabled = true;
-            micButton.classList.add('listening');
-            statusEl.textContent = 'Listening... Speak your answer now.';
-            spokenTextEl.textContent = '';
-            isAnswerLocked = true; 
-
-            // Switch to Spanish recognition for all speaking modes
-            recognition.lang = 'es-ES'; 
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                handleSpeechResult(targetSentence, keywords, transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech Recognition Error:', event.error);
-                micButton.classList.remove('listening');
-                statusEl.textContent = `Error: ${event.error}. Click mic to try again.`;
-                micButton.disabled = false;
-                isAnswerLocked = false; 
-            };
-            
-            recognition.onend = () => {
-                if (isAnswerLocked) { // If onend fires but result wasn't handled (e.g., timeout/no speech)
-                    micButton.classList.remove('listening');
-                    if (!spokenTextEl.textContent) {
-                         statusEl.textContent = 'Did not hear response. Click mic to try again.';
-                    }
-                    micButton.disabled = false;
-                    isAnswerLocked = false;
-                }
-            };
-
-            recognition.start();
-        }
-
-        function handleSpeechResult(targetSentence, keywords, transcript) {
-            const micButton = document.getElementById('mic-button');
-            const spokenTextEl = document.getElementById('spoken-text');
-            const feedbackEl = document.getElementById('speaking-feedback');
-            const statusEl = document.getElementById('speaking-status');
-            const q = currentQuestions[currentQuestionIndex];
-            
-            micButton.classList.remove('listening');
-            micButton.disabled = true;
-            statusEl.textContent = 'Analyzing response...';
-            spokenTextEl.textContent = transcript;
-
-            // Simple keyword check (normalized)
-            const normalizedTranscript = normalizeString(transcript);
-            const requiredKeywords = keywords.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-            
-            let keywordMatches = requiredKeywords.filter(k => normalizedTranscript.includes(k)).length;
-            const isCorrect = keywordMatches / requiredKeywords.length >= 0.7; // 70% match required
-
-            // Record history (common data fields)
-            let historyItem = {
-                mode: quizMode,
-                question: q.question,
-                english: q.english,
-                spanish: q.spanish,
-                keywords: keywords,
-                userSelection: transcript,
-                isCorrect: isCorrect,
-                isSkipped: false
-            };
-
-            quizHistory.push(historyItem);
-            
-            // Show feedback
-            feedbackEl.classList.remove('hidden');
-            if (isCorrect) {
-                feedbackEl.classList.remove('text-red-600');
-                feedbackEl.classList.add('text-green-600');
-                feedbackEl.innerHTML = `¡Muy bien! Found ${keywordMatches} of ${requiredKeywords.length} keywords.`;
-                score++;
-            } else {
-                feedbackEl.classList.remove('text-green-600');
-                feedbackEl.classList.add('text-red-600');
-                feedbackEl.innerHTML = `❌ Try again. Found ${keywordMatches} of ${requiredKeywords.length} keywords.`;
-            }
-
-            // Move to next question
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 3000);
-        }
-
-        // --- Mode 5: Pronunciation Logic (TTS + Speech Recognition) ---
-
-        function renderPronunciationInput(sentence) {
-            answerAreaEl.innerHTML = `
-                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 mb-6">
-                    <!-- Play Audio Button -->
-                    <button 
-                        id="play-tts-button"
-                        onclick="playTTS('${sentence.replace(/'/g, "\\'")}')"
-                        class="tts-button p-4 bg-blue-500 text-white rounded-xl shadow-lg hover:bg-blue-600 font-bold transition duration-150 w-full md:w-auto"
-                    >
-                        <i class="fas fa-volume-up mr-2"></i> Play Spanish Sentence
-                    </button>
-                    
-                    <!-- Microphone Button -->
-                    <button 
-                        id="mic-button"
-                        onclick="startListeningForPronunciation('${sentence.replace(/'/g, "\\'")}')"
-                        class="p-6 bg-red-500 text-white rounded-full shadow-lg transition duration-150 hover:bg-red-600 w-24 h-24 flex items-center justify-center"
-                        disabled
-                    >
-                        <i class="fas fa-microphone text-4xl"></i>
-                    </button>
-                </div>
-
-                <p id="pronunciation-status" class="text-center text-red-600 font-semibold mt-2 min-h-[30px]">Click Play to hear the audio.</p>
-                <p id="spoken-text" class="mt-4 text-xl font-bold text-gray-800 text-center min-h-[30px] border-t pt-4"></p>
-                <div id="speaking-feedback" class="mt-4 text-center text-lg font-semibold hidden"></div>
-                
-                <button onclick="skipQuestion()" class="w-full py-2 mt-4 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition duration-150">
-                    Skip Question
-                </button>
-            `;
-            
-            const micButton = document.getElementById('mic-button');
-            if (SpeechRecognition) {
-                // Mic is initially disabled until user clicks 'Play' and audio is done
-                micButton.disabled = true; 
-            } else {
-                document.getElementById('pronunciation-status').textContent = "Speech recognition is not supported. Use Chrome, Edge, or Safari.";
-                micButton.disabled = true;
-                micButton.classList.replace('bg-red-500', 'bg-gray-400');
-            }
-        }
-        
-        function startListeningForPronunciation(targetSentence) {
-            if (!recognition || isAnswerLocked) return;
-
-            const micButton = document.getElementById('mic-button');
-            const playButton = document.getElementById('play-tts-button');
-            const statusEl = document.getElementById('pronunciation-status');
-            const spokenTextEl = document.getElementById('spoken-text');
-            const feedbackEl = document.getElementById('speaking-feedback');
-
-            // Reset UI for listening phase
-            micButton.disabled = true; // Disable until analysis is done or end event
-            playButton.disabled = true;
-            micButton.classList.add('listening');
-            statusEl.textContent = 'Listening... Please repeat the sentence now.';
-            spokenTextEl.textContent = '';
-            feedbackEl.classList.add('hidden');
-            
-            isAnswerLocked = true; // Lock controls while listening
-
-            // Ensure recognition is set to Spanish
-            recognition.lang = 'es-ES'; 
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                handlePronunciationResult(targetSentence, transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech Recognition Error:', event.error);
-                micButton.classList.remove('listening');
-                statusEl.textContent = `Error: ${event.error}. Click mic to try again.`;
-                
-                // Explicitly re-enable buttons on error
-                micButton.disabled = false;
-                playButton.disabled = false;
-                isAnswerLocked = false; 
-            };
-            
-            recognition.onend = () => {
-                // Explicitly re-enable buttons on end if the result wasn't handled (e.g., timeout/no speech)
-                if (isAnswerLocked) {
-                    micButton.classList.remove('listening');
-                    if (!spokenTextEl.textContent) {
-                         statusEl.textContent = 'Did not hear response. Click mic to try again.';
-                    }
-                    micButton.disabled = false;
-                    playButton.disabled = false;
-                    isAnswerLocked = false; 
-                }
-            };
-
-            recognition.start();
-        }
-        
-        function handlePronunciationResult(targetSentence, transcript) {
-            const micButton = document.getElementById('mic-button');
-            const spokenTextEl = document.getElementById('spoken-text');
-            const feedbackEl = document.getElementById('speaking-feedback');
-            const statusEl = document.getElementById('pronunciation-status');
-            const playButton = document.getElementById('play-tts-button'); 
-
-            micButton.classList.remove('listening');
-            micButton.disabled = true; // Keep disabled until next question
-            playButton.disabled = true; // Keep disabled until next question
-            statusEl.textContent = 'Analyzing pronunciation...';
-            spokenTextEl.textContent = transcript;
-
-            const similarityScore = calculateSimilarity(targetSentence, transcript);
-            const requiredThreshold = 70; // Require 70% or better match for "correct"
-            const isCorrect = similarityScore >= requiredThreshold;
-
-            // Record history
-            quizHistory.push({
-                mode: 'pronunciation',
-                targetSentence: targetSentence,
-                userSelection: transcript,
-                similarityScore: similarityScore.toFixed(0),
-                isCorrect: isCorrect,
-                isSkipped: false
-            });
-            
-            // Show feedback
-            feedbackEl.classList.remove('hidden');
-            if (isCorrect) {
-                feedbackEl.classList.remove('text-red-600');
-                feedbackEl.classList.add('text-green-600');
-                feedbackEl.innerHTML = `¡Perfecto! Score: ${similarityScore.toFixed(0)}% 👍`;
-                score++;
-            } else {
-                feedbackEl.classList.remove('text-green-600');
-                feedbackEl.classList.add('text-red-600');
-                feedbackEl.innerHTML = `❌ Score: ${similarityScore.toFixed(0)}%. Try to match the full sentence!`;
-            }
-
-            // Move to next question
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 3000);
-        }
-        
-        // --- Results and Reset Logic (Updated for all 5 modes) ---
-        
         function showResults() {
             quizScreenEl.classList.add('hidden');
             resultsScreenEl.classList.remove('hidden');
 
             finalScoreEl.textContent = score;
 
-            let message;
+            let message = '';
             if (score === 10) {
-                message = "¡Felicidades! You're a true master of this level!";
-            } else if (score >= 8) {
-                message = "Excellent work! Almost perfect, keep practicing!";
-            } else if (score >= 5) {
-                message = "Good job! You've got a solid foundation.";
+                message = 'Outstanding! You are fluent in this level. ¡Felicidades!';
+            } else if (score >= 7) {
+                message = 'Great job! You have a solid understanding of this level.';
+            } else if (score >= 4) {
+                message = 'Good effort! Keep practicing to master this level.';
             } else {
-                message = "Keep going! Review the vocabulary and try again.";
+                message = 'Practice makes perfect! Review the words you missed.';
             }
             scoreMessageEl.textContent = message;
 
-            // Render Review List
-            const reviewHTML = quizHistory.map((item, index) => {
-                let content;
-                let promptTitle;
-                let modeLabel;
-                let reviewClass = 'review-incorrect';
-
-                // Determine border color and main status
-                if (item.isSkipped) {
-                    reviewClass = 'review-skipped';
-                } else if (item.isCorrect) {
-                    reviewClass = 'review-correct';
-                }
-
-                if (item.mode === 'mc') {
-                    modeLabel = 'Spanish to English (MC)';
-                    promptTitle = item.spanishWord;
-                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
-                        `
-                        <p class="text-sm text-green-700">✅ Correct English: <span class="font-bold">${item.correctAnswer}</span></p>
-                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
-                            ${item.isCorrect ? 'Your Answer: ' : '❌ Your Answer: '}
-                            <span class="font-bold">${item.userSelection}</span>
-                        </p>
-                    `;
-                } else if (item.mode === 'typing') {
-                    modeLabel = 'English to Spanish (Typing)';
-                    promptTitle = item.englishPrompt;
-                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
-                        `
-                        <p class="text-sm text-green-700">✅ Correct Spanish: <span class="font-bold">${item.spanishWord}</span></p>
-                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
-                            ${item.isCorrect ? 'Your Answer: ' : '❌ Your Answer: '}
-                            <span class="font-bold">${item.userSelection}</span>
-                        </p>
-                    `;
-                } else if (item.mode === 'speaking' || item.mode === 'reverse-speaking') {
-                    modeLabel = item.mode === 'speaking' ? 'Spanish Speaking (Spanish Q)' : 'English to Spanish (English Q)';
-                    promptTitle = item.question;
-                    const expectedText = item.mode === 'speaking' ? `English Translation: ${item.english}` : `Expected Spanish: ${item.spanish}`;
-                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
-                        `
-                        <p class="text-sm text-green-700">✅ Expected Keywords: <span class="font-bold">${item.keywords}</span></p>
-                        <p class="text-sm text-gray-500">${expectedText}</p>
-                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
-                            ${item.isCorrect ? 'Spoken Transcript: ' : '❌ Spoken Transcript: '}
-                            <span class="font-bold">${item.userSelection || 'No speech recorded.'}</span>
-                        </p>
-                    `;
-                } else if (item.mode === 'pronunciation') {
-                    modeLabel = 'Pronunciation & Listening';
-                    promptTitle = item.targetSentence;
-                    content = item.isSkipped ? '<p class="text-sm text-gray-700 font-bold">➡️ Status: Skipped</p>' : 
-                        `
-                        <p class="text-sm text-green-700">✅ Target Sentence: <span class="font-bold">${item.targetSentence}</span></p>
-                        <p class="text-sm text-gray-500">Similarity Score: ${item.similarityScore}% (Requires 70% match)</p>
-                        <p class="text-sm ${item.isCorrect ? 'text-green-700' : 'text-red-700'}">
-                            ${item.isCorrect ? 'Your Transcript: ' : '❌ Your Transcript: '}
-                            <span class="font-bold">${item.userSelection || 'No speech recorded.'}</span>
-                        </p>
-                    `;
-                }
-                
-                return `
-                    <div class="p-4 mb-3 rounded-xl shadow-md border bg-white ${reviewClass}">
-                        <p class="text-xs font-semibold text-gray-500 mb-1">Question ${index + 1} (${modeLabel})</p>
-                        <p class="text-xl font-extrabold text-gray-900 mb-2">${promptTitle}</p>
-                        ${content}
-                    </div>
-                `;
-            }).join('');
-
-            reviewListEl.innerHTML = `
-                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quiz Review (${currentLevel.toUpperCase()})</h3>
-                <div class="space-y-3">${reviewHTML}</div>
-            `;
+            renderReviewList();
         }
-        
-        // ... (copyReviewToClipboard and resetQuiz remain the same)
-        function copyReviewToClipboard(button) {
-            const modeMap = { 
-                'mc': 'Spanish to English (MC)', 
-                'typing': 'English to Spanish (Typing)', 
-                'speaking': 'Spanish Speaking (Spanish Q)', 
-                'reverse-speaking': 'English to Spanish Speaking (English Q)',
-                'pronunciation': 'Pronunciation & Listening'
-            };
-            const modeText = modeMap[quizMode];
-            let reviewText = `--- Spanish Quiz Results: ${currentLevel.toUpperCase()} (${modeText}) ---\n`;
-            reviewText += `Final Score: ${score}/10\n\n`;
-            reviewText += `--- Review ---\n`;
 
-            quizHistory.forEach((item, index) => {
-                let status, correctDetail, promptDetail;
+        function renderReviewList() {
+            reviewListEl.innerHTML = '';
+            quizHistory.forEach(item => {
+                const isSkipped = item.userAnswer === 'SKIPPED';
+                let cardClass = '';
+                let resultIcon = '';
 
-                if (item.isSkipped) {
-                    status = "SKIPPED";
+                if (isSkipped) {
+                    cardClass = 'review-skipped';
+                    resultIcon = '<i class="fas fa-forward text-gray-500"></i> Skipped';
+                } else if (item.isCorrect) {
+                    cardClass = 'review-correct';
+                    resultIcon = '<i class="fas fa-check-circle text-green-500"></i> Correct';
                 } else {
-                    status = item.isCorrect ? "CORRECT" : "INCORRECT";
+                    cardClass = 'review-incorrect';
+                    resultIcon = '<i class="fas fa-times-circle text-red-500"></i> Incorrect';
                 }
 
-                if (item.mode === 'mc') {
-                    promptDetail = `Spanish: ${item.spanishWord}`;
-                    correctDetail = `English: ${item.correctAnswer}`;
-                } else if (item.mode === 'typing') {
-                    promptDetail = `English: ${item.englishPrompt}`;
-                    correctDetail = `Spanish: ${item.spanishWord}`;
-                } else if (item.mode === 'speaking') {
-                    promptDetail = `Q (ES): ${item.question}`;
-                    correctDetail = `Expected Keywords: ${item.keywords} (Eng: ${item.english})`;
-                } else if (item.mode === 'reverse-speaking') {
-                    promptDetail = `Q (EN): ${item.question}`;
-                    correctDetail = `Expected Spanish: ${item.spanish} (Keywords: ${item.keywords})`;
-                } else if (item.mode === 'pronunciation') {
-                    promptDetail = `Target Sentence: ${item.targetSentence}`;
-                    correctDetail = `Required Match: 70% | Score: ${item.similarityScore}%`;
+                let answerDetails = '';
+
+                if (item.type.includes('Speaking')) {
+                    answerDetails = `
+                        <p class="text-sm mt-1 text-gray-600">You Said: <span class="font-semibold">${item.userAnswer}</span></p>
+                        <p class="text-sm text-gray-600">Target: <span class="font-semibold">${item.target}</span></p>
+                        <p class="text-xs text-gray-500">Similarity: ${item.similarity}%</p>
+                    `;
+                } else if (item.type === 'Typing' || item.type === 'Multiple Choice') {
+                    const userText = item.userAnswer || 'No Answer';
+                    const targetText = item.target;
+                    answerDetails = `
+                        <p class="text-sm mt-1 text-gray-600">Your Answer: <span class="font-semibold">${userText}</span></p>
+                        <p class="text-sm text-gray-600">Correct: <span class="font-semibold">${targetText}</span></p>
+                    `;
+                } else if (isSkipped) {
+                     answerDetails = `<p class="text-sm mt-1 text-gray-600">Correct Answer: <span class="font-semibold">${item.target}</span></p>`;
                 }
-                
-                reviewText += `\n${index + 1}. ${promptDetail} [${status}]\n`;
-                if (!item.isSkipped) {
-                    reviewText += `   ✅ Correct: ${correctDetail}\n`;
-                    reviewText += `   ➡️ Your Answer/Transcript: ${item.userSelection}\n`;
-                }
+
+
+                const reviewCard = document.createElement('div');
+                reviewCard.className = `p-4 mb-3 bg-white rounded-lg shadow-md ${cardClass}`;
+                reviewCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <p class="text-lg font-bold text-gray-800">Q${item.index}: ${item.prompt}</p>
+                        <span class="text-sm font-semibold">${resultIcon}</span>
+                    </div>
+                    ${answerDetails}
+                `;
+                reviewListEl.appendChild(reviewCard);
             });
-            
+        }
+
+        function copyReviewToClipboard(button) {
+            const reviewText = quizHistory.map(item => {
+                let status = item.isCorrect ? 'Correct' : (item.userAnswer === 'SKIPPED' ? 'Skipped' : 'Incorrect');
+                let details = '';
+
+                if (item.type.includes('Speaking')) {
+                    details = `\n  Target: ${item.target}\n  You Said: ${item.userAnswer}\n  Similarity: ${item.similarity}%`;
+                } else if (item.userAnswer === 'SKIPPED') {
+                    details = `\n  Correct Answer: ${item.target}`;
+                } else {
+                    details = `\n  Correct Answer: ${item.target}\n  Your Answer: ${item.userAnswer}`;
+                }
+
+                return `Q${item.index} [${status}] (${item.type})\nPrompt: ${item.prompt}${details}\n---`;
+            }).join('\n');
+
+            const fullText = `--- Spanish Language Trainer Quiz Results (${currentLevel.toUpperCase()}) ---\nScore: ${score}/10\n\n${reviewText}`;
+
             const textarea = document.createElement('textarea');
-            textarea.value = reviewText;
-            textarea.style.position = 'fixed'; 
+            textarea.value = fullText;
             document.body.appendChild(textarea);
             textarea.select();
             
             try {
                 document.execCommand('copy');
-                
                 button.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 button.classList.add('bg-green-500', 'hover:bg-green-600');
